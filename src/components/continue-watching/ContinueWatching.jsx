@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { getContinueWatching } from '../../utils/continueWatching';
 import MovieCard from '../movie-card/MovieCard';
+import { SwiperSlide, Swiper } from 'swiper/react';
 import './continue-watching.scss';
 
 const ContinueWatching = () => {
@@ -23,14 +23,15 @@ const ContinueWatching = () => {
     <div className="continue-watching">
       <div className="section__header mb-2">
         <h2>Continue Watching</h2>
-        <Link to="/continue-watching">
-          <span className="view-more">View all</span>
-        </Link>
       </div>
       <div className="continue-watching__list">
-        {watchedItems.slice(0, 5).map((item, i) => (
-          <MovieCard key={i} item={item} category={item.category} />
-        ))}
+        <Swiper grabCursor={true} spaceBetween={10} slidesPerView={"auto"}>
+          {watchedItems.map((item, i) => (
+            <SwiperSlide key={i}>
+              <MovieCard item={item} category={item.category} />
+            </SwiperSlide>
+          ))}
+        </Swiper>
       </div>
     </div>
   );

@@ -1,10 +1,22 @@
+@use "./../../scss/breakpoint" as *;
+
 .continue-watching {
   margin: 2rem 3rem 3rem 3rem; /* Add margin to move away from edges */
 
   &__list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
+    /* Remove grid styles */
+    /* Add swiper styles similar to movie-list */
+    .swiper-slide {
+      width: 15%;
+
+      @include tablet {
+        width: 30%;
+      }
+
+      @include mobile {
+        width: 40%;
+      }
+    }
   }
 
   .section__header {
@@ -15,16 +27,6 @@
 
     h2 {
       margin: 0;
-    }
-
-    .view-more {
-      color: #007bff;
-      text-decoration: none;
-      font-size: 0.9rem;
-
-      &:hover {
-        text-decoration: underline;
-      }
     }
   }
 }
