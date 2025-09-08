@@ -4,6 +4,7 @@ import { useParams } from "react-router";
 
 import tmdbApi from "../../api/tmdbApi";
 import vidsrcApi from "../../api/vidsrcApi";
+import adBlocker from "../../utils/adBlocker";
 
 const VideoList = (props) => {
   const { category } = useParams();
@@ -184,17 +185,12 @@ const Video = (props) => {
     <div className="video">
       <div className="video__title">
         <h2>{item.name}</h2>
-
       </div>
       {currentSource && (
-        <iframe
-          src={currentSource.url}
-          ref={iframeRef}
-          width="100%"
-          title="video"
-          allowFullScreen
-          onError={handleIframeError}
-        ></iframe>
+        <div ref={iframeRef} dangerouslySetInnerHTML={{__html: adBlocker.createAdBlockedIframe(currentSource.url, {
+            width: '100%',
+            height: '400px'
+          }).outerHTML}} />
       )}
     </div>
   );

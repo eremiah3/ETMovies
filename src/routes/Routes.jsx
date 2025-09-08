@@ -12,14 +12,8 @@ const Routes = () => {
   return (
     <Switch>
       <Route exact path="/" render={() => <Redirect to={`/${Config.HOME_PAGE}`} />} />
-      <Route
-        path={`/${Config.HOME_PAGE}/animation/search/:keyword`}
-        component={Animation}
-      />
-      <Route
-        path={`/${Config.HOME_PAGE}/:category/search/:keyword`}
-        component={Catalog}
-      />
+      <Route path={`/${Config.HOME_PAGE}/animation/search/:keyword`} component={Animation} />
+      <Route path={`/${Config.HOME_PAGE}/:category/search/:keyword`} component={Catalog} />
       <Route path={`/${Config.HOME_PAGE}/:category/:id`} component={Detail} />
       <Route path={`/${Config.HOME_PAGE}/animation`} component={Animation} />
       <Route path={`/${Config.HOME_PAGE}/:category`} component={Catalog} />

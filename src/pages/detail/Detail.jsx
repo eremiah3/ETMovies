@@ -3,7 +3,7 @@ import { useParams } from "react-router";
 
 import tmdbApi from "./../../api/tmdbApi";
 import apiConfig from "../../api/apiConfig";
-
+import { addToContinueWatching } from "../../utils/continueWatching";
 import "./detail.scss";
 import CastList from "./CastList";
 import VideoList from "./VideoList";
@@ -19,6 +19,8 @@ const Detail = () => {
       const response = await tmdbApi.detail(category, id, { params: {} });
       setItem(response);
       window.scrollTo(0, 0);
+      // Add to continue watching
+      addToContinueWatching({ ...response, category });
     };
     getDetail();
   }, [category, id]);
