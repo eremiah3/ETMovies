@@ -1,7 +1,10 @@
-# TODO for Continue Watching Section Update
+# TODO for Football Feature Implementation
 
-- [x] Remove "View all" link from ContinueWatching.jsx
-- [x] Import Swiper and SwiperSlide components in ContinueWatching.jsx
-- [x] Change continue-watching__list to use Swiper slider instead of grid
-- [x] Update continue-watching.scss to match swiper slider styles like movie-list.scss
-- [ ] Test the changes to ensure ContinueWatching section looks like other homepage sections
+- [x] Create footballApi.js for fetching football data
+- [x] Create Football.jsx page component
+- [x] Add football route in Routes.jsx
+- [x] Add Football navigation in Header.jsx
+- [x] Add football section in Home.jsx
+- [x] Add CSS styles for football matches display
+- [x] Test the football page functionality
+- [ ] Obtain API token for football-data.org (replace YOUR_API_TOKEN_HERE in footballApi.js)

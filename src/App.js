@@ -9,21 +9,25 @@ import Footer from "./components/footer/Footer";
 
 import Routes from "./routes/Routes";
 
+import { AuthProvider } from "./contexts/AuthContext";
+
 function App() {
   return (
-    <BrowserRouter>
-      <Route
-        render={(props) => (
-          <>
-            <Header {...props} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Route
+          render={(props) => (
+            <>
+              <Header {...props} />
 
-            <Routes />
+              <Routes />
 
-            <Footer />
-          </>
-        )}
-      />
-    </BrowserRouter>
+              <Footer />
+            </>
+          )}
+        />
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 

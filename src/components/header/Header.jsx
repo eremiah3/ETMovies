@@ -7,6 +7,8 @@ import logo from "./../../assets/logo.png";
 
 import * as Config from "./../../constants/Config";
 
+import { useAuth } from "../../contexts/AuthContext";
+
 const headerNav = [
   {
     display: "Home",
@@ -28,6 +30,7 @@ const headerNav = [
 
 const Header = () => {
   const { pathname } = useLocation();
+  const { currentUser, logout } = useAuth();
   const headerRef = useRef(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -39,6 +42,14 @@ const Header = () => {
 
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
   };
 
   useEffect(() => {
@@ -74,6 +85,67 @@ const Header = () => {
     };
   }, [isMobileMenuOpen]);
 
+  if (!currentUser) {
+    return (
+      <>
+        <div ref={headerRef} className="header">
+          <div className="header__wrap container">
+            <div className="logo">
+              <img src={logo} alt="logo" />
+              <Link to={`/${Config.HOME_PAGE}`}>ETMovies</Link>
+            </div>
+            <ul className="header__nav">
+              <li>
+                <Link to="/login">Login</Link>
+              </li>
+              <li>
+                <Link to="/signup">Sign Up</Link>
+              </li>
+            </ul>
+            {/* Hamburger Menu Button */}
+            <button
+              className={`hamburger ${isMobileMenuOpen ? 'active' : ''}`}
+              onClick={toggleMobileMenu}
+              aria-label="Toggle mobile menu"
+            >
+              <span className="hamburger__line"></span>
+              <span className="hamburger__line"></span>
+              <span className="hamburger__line"></span>
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile Menu Overlay */}
+        <div
+          className={`mobile-menu ${isMobileMenuOpen ? 'active' : ''}`}
+          onClick={closeMobileMenu}
+        >
+          <div
+            className="mobile-menu__content"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside menu
+          >
+            <button
+              className="mobile-menu__close"
+              onClick={closeMobileMenu}
+              aria-label="Close mobile menu"
+            >
+              <span className="close-icon">×</span>
+            </button>
+
+            <ul className="mobile-menu__nav">
+              <li>
+                <Link to="/login" onClick={closeMobileMenu}>Login</Link>
+              </li>
+              <li>
+                <Link to="/signup" onClick={closeMobileMenu}>Sign Up</Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <div ref={headerRef} className="header">
@@ -89,6 +161,11 @@ const Header = () => {
                 <Link to={e.path}>{e.display}</Link>
               </li>
             ))}
+            <li>
+              <button onClick={handleLogout} className="logout-button">
+                Logout
+              </button>
+            </li>
           </ul>
 
           {/* Hamburger Menu Button */}
@@ -129,6 +206,11 @@ const Header = () => {
                 </Link>
               </li>
             ))}
+            <li>
+              <button onClick={handleLogout} className="logout-button">
+                Logout
+              </button>
+            </li>
           </ul>
         </div>
       </div>
