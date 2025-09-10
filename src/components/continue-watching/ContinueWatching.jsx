@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { getContinueWatching } from '../../utils/continueWatching';
+import { getContinueWatching, overwriteContinueWatching } from '../../utils/continueWatching';
 import MovieCard from '../movie-card/MovieCard';
 import { SwiperSlide, Swiper } from 'swiper/react';
 import './continue-watching.scss';
@@ -15,6 +15,12 @@ const ContinueWatching = () => {
     fetchWatched();
   }, []);
 
+  const handleRemove = async (item) => {
+    const updatedItems = watchedItems.filter(w => w.id !== item.id);
+    setWatchedItems(updatedItems);
+    await overwriteContinueWatching(updatedItems);
+  };
+
   if (watchedItems.length === 0) {
     return null;
   }
@@ -28,7 +34,7 @@ const ContinueWatching = () => {
         <Swiper grabCursor={true} spaceBetween={10} slidesPerView={"auto"}>
           {watchedItems.map((item, i) => (
             <SwiperSlide key={i}>
-              <MovieCard item={item} category={item.category} />
+              <MovieCard item={item} category={item.category} onRemove={() => handleRemove(item)} />
             </SwiperSlide>
           ))}
         </Swiper>

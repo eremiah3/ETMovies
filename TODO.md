@@ -1,10 +1,10 @@
-# TODO for Football Feature Implementation
+# Continue Watching Fix Plan
 
-- [x] Create footballApi.js for fetching football data
-- [x] Create Football.jsx page component
-- [x] Add football route in Routes.jsx
-- [x] Add Football navigation in Header.jsx
-- [x] Add football section in Home.jsx
-- [x] Add CSS styles for football matches display
-- [x] Test the football page functionality
-- [ ] Obtain API token for football-data.org (replace YOUR_API_TOKEN_HERE in footballApi.js)
+- [x] Remove addToContinueWatching from Detail.jsx
+- [x] Add addToContinueWatching to VideoList.jsx in Video component useEffect
+- [x] Update ContinueWatching.jsx to remove "Mark as Watched" button and pass onRemove prop to MovieCard
+- [x] Update MovieCard.jsx to accept onRemove prop and show remove button on hover
+- [x] Update movie-card.scss for remove button styling
+- [x] Update continue-watching.scss for Netflix-like styling
+- [ ] Test persistence across logout/login
+- [ ] Test removal functionality

@@ -5,6 +5,7 @@ import { useParams } from "react-router";
 import tmdbApi from "../../api/tmdbApi";
 import vidsrcApi from "../../api/vidsrcApi";
 import adBlocker from "../../utils/adBlocker";
+import { addToContinueWatching } from "../../utils/continueWatching";
 
 const VideoList = (props) => {
   const { category } = useParams();
@@ -131,14 +132,15 @@ const VideoList = (props) => {
       )}
 
       {videos.length > 0 ? (
-        videos.map((item, index) => (
+        videos.map((videoItem, index) => (
           <Video
             key={index}
-            item={item}
+            item={videoItem}
             category={props.category || category}
             id={props.id}
             season={selectedSeason}
             episode={selectedEpisode}
+            movieItem={props.item}
           />
         ))
       ) : null}
@@ -170,7 +172,12 @@ const Video = (props) => {
       iframeRef.current.setAttribute("width", containerWidth.toString());
       iframeRef.current.setAttribute("height", containerHeight.toString());
     }
-  }, []);
+
+    // Add to continue watching when video is loaded
+    if (props.movieItem) {
+      addToContinueWatching({ ...props.movieItem, category: props.category });
+    }
+  }, [props.movieItem, props.category]);
 
   const handleIframeError = () => {
     // Try next source if available

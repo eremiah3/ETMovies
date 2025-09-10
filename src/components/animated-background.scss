@@ -1,0 +1,193 @@
+.animated-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  pointer-events: none;
+
+  &--hero {
+    z-index: 0;
+    opacity: 0.6;
+  }
+
+  &--minimal {
+    opacity: 0.3;
+  }
+
+  &--default {
+    opacity: 0.4;
+  }
+}
+
+// Additional CSS for enhanced visual effects
+@keyframes morph {
+  0%, 100% {
+    border-radius: 40% 60% 70% 30% / 40% 40% 60% 50%;
+  }
+  25% {
+    border-radius: 30% 60% 30% 70% / 50% 60% 30% 60%;
+  }
+  50% {
+    border-radius: 50% 40% 50% 60% / 30% 50% 70% 40%;
+  }
+  75% {
+    border-radius: 60% 40% 60% 40% / 50% 40% 50% 60%;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  33% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+  66% {
+    transform: translateY(5px) rotate(-1deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 40px rgba(255, 255, 255, 0.3);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+// Utility classes for additional effects
+.shimmer-effect {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.morphing-shape {
+  animation: morph 6s ease-in-out infinite;
+}
+
+.floating-element {
+  animation: float 4s ease-in-out infinite;
+}
+
+.pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+// Glass morphism effect
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+}
+
+// Neon glow effect
+.neon-glow {
+  text-shadow:
+    0 0 5px currentColor,
+    0 0 10px currentColor,
+    0 0 15px currentColor,
+    0 0 20px currentColor;
+}
+
+// Gradient text effect
+.gradient-text {
+  background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+  background-size: 400% 400%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientShift 4s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+// 3D card effect
+.card-3d {
+  transform-style: preserve-3d;
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: rotateY(5deg) rotateX(5deg) translateZ(20px);
+  }
+}
+
+// Parallax effect
+.parallax-element {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+// Interactive hover effects
+.interactive-hover {
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+
+  &:hover {
+    transform: scale(1.05) translateY(-5px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// Magnetic effect
+.magnetic {
+  transition: transform 0.3s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+}
+
+// Liquid button effect
+.liquid-button {
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  &:hover::before {
+    left: 100%;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .animated-background {
+    opacity: 0.2;
+  }
+
+  .gradient-text {
+    background-size: 200% 200%;
+  }
+}

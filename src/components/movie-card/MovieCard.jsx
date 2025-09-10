@@ -23,14 +23,21 @@ const MovieCard = (props) => {
       : apiConfig.w500Image(item.poster_path || item.backdrop_path);
 
   return (
-    <Link to={link}>
-      <div className="movie-card" style={{ backgroundImage: `url(${bg})` }}>
-        <Button>
-          <i className="bx bx-play"></i>
-        </Button>
-      </div>
-      <h3>{item.title || item.name}</h3>
-    </Link>
+    <div className="movie-card-container">
+      <Link to={link}>
+        <div className="movie-card" style={{ backgroundImage: `url(${bg})` }}>
+          <Button>
+            <i className="bx bx-play"></i>
+          </Button>
+          {props.onRemove && (
+            <button className="remove-button" onClick={(e) => { e.preventDefault(); props.onRemove(); }}>
+              <i className="bx bx-x"></i>
+            </button>
+          )}
+        </div>
+        <h3>{item.title || item.name}</h3>
+      </Link>
+    </div>
   );
 };
 

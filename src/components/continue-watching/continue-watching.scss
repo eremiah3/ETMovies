@@ -1,11 +1,9 @@
 @use "./../../scss/breakpoint" as *;
 
 .continue-watching {
-  margin: 2rem 3rem 3rem 3rem; /* Add margin to move away from edges */
+  margin: 2rem 0 3rem 0;
 
   &__list {
-    /* Remove grid styles */
-    /* Add swiper styles similar to movie-list */
     .swiper-slide {
       width: 15%;
 
@@ -24,9 +22,26 @@
     justify-content: space-between;
     align-items: center;
     margin-bottom: 1rem;
+    padding: 0 3rem;
 
     h2 {
       margin: 0;
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+  }
+
+  .movie-card-container {
+    .movie-card {
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        height: 4px;
+        background: #e50914;
+        width: 30%; /* Placeholder for progress */
+      }
     }
   }
 }

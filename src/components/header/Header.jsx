@@ -161,7 +161,7 @@ const Header = () => {
                 <Link to={e.path}>{e.display}</Link>
               </li>
             ))}
-            <li>
+            <li className="logout-section">
               <button onClick={handleLogout} className="logout-button">
                 Logout
               </button>
@@ -207,7 +207,7 @@ const Header = () => {
               </li>
             ))}
             <li>
-              <button onClick={handleLogout} className="logout-button">
+              <button onClick={() => { handleLogout(); closeMobileMenu(); }} className="logout-button">
                 Logout
               </button>
             </li>
