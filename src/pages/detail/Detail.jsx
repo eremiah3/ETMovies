@@ -15,7 +15,13 @@ const Detail = () => {
 
   useEffect(() => {
     const getDetail = async () => {
-      const response = await tmdbApi.detail(category, id, { params: {} });
+      let response;
+      if (category === "anime") {
+        // Removed anime handling
+        response = null;
+      } else {
+        response = await tmdbApi.detail(category, id, { params: {} });
+      }
       setItem(response);
       window.scrollTo(0, 0);
     };
@@ -59,15 +65,15 @@ const Detail = () => {
               </div>
               <p className="overview">{item.overview}</p>
 
-
-
-              <div className="cast">
-                <div className="section__header">
-                  <h2>Casts</h2>
+              {category !== "anime" && (
+                <div className="cast">
+                  <div className="section__header">
+                    <h2>Casts</h2>
+                  </div>
+                  {/* casts list */}
+                  <CastList id={item.id} />
                 </div>
-                {/* casts list */}
-                <CastList id={item.id} />
-              </div>
+              )}
             </div>
           </div>
 

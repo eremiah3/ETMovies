@@ -1,11 +1,9 @@
 import React from "react";
-import { Link, useHistory } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
+import { Link } from "react-router-dom";
 
 import { OutlineButton } from "../components/button/Button";
 import HeroSlide from "../components/hero-slide/HeroSlide";
 import MovieList from "../components/movie-list/MovieList";
-import ContinueWatching from "../components/continue-watching/ContinueWatching";
 import AnimatedBackground from "../components/AnimatedBackground";
 
 import { category, movieType, tvType } from "../api/tmdbApi";
@@ -13,25 +11,12 @@ import { category, movieType, tvType } from "../api/tmdbApi";
 import * as Config from "./../constants/Config";
 
 const Home = () => {
-  const { logout } = useAuth();
-  const history = useHistory();
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      history.push("/login");
-    } catch (error) {
-      console.error("Failed to logout:", error);
-    }
-  };
-
   return (
     <>
       <HeroSlide />
       <AnimatedBackground variant="hero" />
 
       <div className="container">
-        <ContinueWatching />
 
         <div className="section mb-3">
           <div className="section__header mb-2">

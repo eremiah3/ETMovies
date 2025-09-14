@@ -2,6 +2,10 @@
 
 .continue-watching {
   margin: 2rem 0 3rem 0;
+  padding: 1.5rem 0;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
 
   &__list {
     .swiper-slide {
@@ -21,27 +25,106 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     padding: 0 3rem;
 
     h2 {
       margin: 0;
       font-size: 1.5rem;
       font-weight: 600;
+      color: #fff;
+      position: relative;
+
+      &::after {
+        content: "";
+        position: absolute;
+        bottom: -8px;
+        left: 0;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(90deg, #ff6b35, #f7931e);
+        border-radius: 2px;
+      }
+    }
+
+    p {
+      margin: 0;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  }
+
+  &__empty {
+    padding: 2rem 3rem;
+    text-align: center;
+
+    p {
+      font-size: 1.1rem;
+      color: #888;
+      margin: 0;
     }
   }
 
   .movie-card-container {
+    position: relative;
+
     .movie-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      }
+
+      // Progress bar for continue watching
       &::after {
         content: "";
         position: absolute;
         bottom: 0;
         left: 0;
         height: 4px;
-        background: #e50914;
-        width: 30%; /* Placeholder for progress */
+        background: linear-gradient(90deg, #ff6b35, #f7931e);
+        width: 40%; /* Default progress - could be made dynamic */
+        border-radius: 0 0 8px 8px;
+        box-shadow: 0 1px 3px rgba(255, 107, 53, 0.3);
       }
+    }
+
+    .remove-button {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      border: none;
+      border-radius: 50%;
+      width: 28px;
+      height: 28px;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      z-index: 10;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background: #e50914;
+        transform: scale(1.1);
+      }
+    }
+
+    h3 {
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #e9f0f6;
+      text-align: center;
+      line-height: 1.3;
+      display: -webkit-box;
+      // -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   }
 }

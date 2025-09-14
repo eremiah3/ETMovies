@@ -17,9 +17,9 @@ const vidsrcApi = {
   getTvStream: (tvId, season = 1, episode = 1) => {
     const sources = [
       { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
-      { url: `https://vidsrc.pm/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.pm" },
-      { url: `https://vidsrc.xyz/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.xyz" },
-      { url: `https://vidsrc.net/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.net" },
+      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
+      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
+      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
       { url: `https://www.cloudstream.pro/embed/tv/${tvId}/${season}/${episode}`, source: "cloudstream pro" }
     ];
 

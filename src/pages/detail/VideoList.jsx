@@ -1,11 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
-
 import { useParams } from "react-router";
-
 import tmdbApi from "../../api/tmdbApi";
 import vidsrcApi from "../../api/vidsrcApi";
 import adBlocker from "../../utils/adBlocker";
-import { addToContinueWatching } from "../../utils/continueWatching";
 
 const VideoList = (props) => {
   const { category } = useParams();
@@ -15,45 +12,71 @@ const VideoList = (props) => {
   const [selectedSeason, setSelectedSeason] = useState(null);
   const [episodes, setEpisodes] = useState([]);
   const [selectedEpisode, setSelectedEpisode] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
 
-  useEffect(() => {
-    const getVideos = async () => {
+  // Move getVideos outside useEffect to make it accessible
+  const getVideos = async () => {
+    try {
       if (props.category === "movie" || category === "movie") {
-        const sources = vidsrcApi.getMovieStream(props.id);
-        setVideos([{
-          id: props.id,
-          name: "Full Movie",
-          key: props.id,
-          vidSrcUrl: sources[0].url,
-          source: sources[0].source,
-          allSources: sources
-        }]);
+        const sources = await vidsrcApi.getMovieStream(props.id);
+        setVideos([
+          {
+            id: props.id,
+            name: "Full Movie",
+            key: props.id,
+            vidSrcUrl: sources[0]?.url,
+            source: sources[0]?.source,
+            allSources: sources,
+          },
+        ]);
+        setCurrentSourceIndex(0);
       } else if (props.category === "tv" || category === "tv") {
         const season = selectedSeason || props.season || 1;
         const episode = selectedEpisode || props.episode || 1;
-        const sources = vidsrcApi.getTvStream(props.id, season, episode);
-        setVideos([{
-          id: props.id,
-          name: "Full Episode",
-          key: props.id,
-          vidSrcUrl: sources[0].url,
-          source: sources[0].source,
-          allSources: sources
-        }]);
+        let sources = await vidsrcApi.getTvStream(props.id, season, episode);
+        sources = sources.filter((source) => source.source === "vidsrc.in");
+        if (sources.length === 0) {
+          sources = await vidsrcApi.getTvStream(props.id, season, episode);
+        }
+        setVideos([
+          {
+            id: props.id,
+            name: "Full Episode",
+            key: `${props.id}-${season}-${episode}`,
+            vidSrcUrl: sources[0]?.url,
+            source: sources[0]?.source,
+            allSources: [sources[0]],
+          },
+        ]);
+        setCurrentSourceIndex(0);
       } else {
-        const sources = vidsrcApi.getMovieStream(props.id);
-        setVideos([{
-          id: props.id,
-          name: "Full Movie",
-          key: props.id,
-          vidSrcUrl: sources[0].url,
-          source: sources[0].source,
-          allSources: sources
-        }]);
+        const sources = await vidsrcApi.getMovieStream(props.id);
+        setVideos([
+          {
+            id: props.id,
+            name: "Full Movie",
+            key: props.id,
+            vidSrcUrl: sources[0]?.url,
+            source: sources[0]?.source,
+            allSources: sources,
+          },
+        ]);
+        setCurrentSourceIndex(0);
       }
-    };
-    getVideos();
-  }, [category, props.category, props.id, selectedSeason, selectedEpisode, props.season, props.episode]);
+    } catch (error) {
+      console.error("Error fetching videos:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (props.category === "tv" || category === "tv") {
+      setIsPlaying(false);
+    } else {
+      setIsPlaying(true);
+    }
+    getVideos(); // Call getVideos on mount or category change
+  }, [props.category, category, props.id, selectedSeason, selectedEpisode, props.season, props.episode]);
 
   useEffect(() => {
     const getSeasons = async () => {
@@ -79,7 +102,7 @@ const VideoList = (props) => {
           const episodesResponse = await tmdbApi.getEpisodes(props.id, selectedSeason);
           setEpisodes(episodesResponse.episodes || []);
           if (episodesResponse.episodes && episodesResponse.episodes.length > 0) {
-            setSelectedEpisode(episodesResponse.episodes[0].id);
+            setSelectedEpisode(episodesResponse.episodes[0].episode_number);
           }
         } catch (error) {
           console.error("Error fetching episodes:", error);
@@ -89,8 +112,18 @@ const VideoList = (props) => {
     getEpisodes();
   }, [props.category, category, props.id, selectedSeason]);
 
+  const handlePlay = (e) => {
+    e.preventDefault(); // Prevent any default form submission or navigation
+    if (videos.length > 0) {
+      setIsPlaying(true);
+    } else {
+      console.warn("No video sources available. Attempting to fetch again.");
+      getVideos(); // Now accessible here
+    }
+  };
+
   return (
-    <>
+    <div className="video-list-container">
       {(props.category === "tv" || category === "tv") && seasons.length > 0 && (
         <div className="video-controls">
           <div className="season-episode-selectors">
@@ -120,87 +153,53 @@ const VideoList = (props) => {
                   className="episode-select"
                 >
                   {episodes.map((episode) => (
-                    <option key={episode.id} value={episode.id}>
-                      {episode.name || `Episode ${episode.episode_number}`}
+                    <option key={episode.id} value={episode.episode_number}>
+                      {episode.episode_number ? `Episode ${episode.episode_number} - ` : ""}
+                      {episode.name || ""}
                     </option>
                   ))}
                 </select>
               </div>
             )}
+            <button className="play-button" onClick={handlePlay} style={{ marginLeft: "10px", padding: "5px 10px" }}>
+              Play
+            </button>
           </div>
         </div>
       )}
 
-      {videos.length > 0 ? (
-        videos.map((videoItem, index) => (
-          <Video
-            key={index}
-            item={videoItem}
-            category={props.category || category}
-            id={props.id}
-            season={selectedSeason}
-            episode={selectedEpisode}
-            movieItem={props.item}
-          />
-        ))
-      ) : null}
-    </>
-  );
-};
-
-const Video = (props) => {
-  const item = props.item;
-  const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
-  const [sources, setSources] = useState([]);
-
-  const iframeRef = useRef(null);
-
-  useEffect(() => {
-    // Use sources from the item prop
-    if (item.allSources) {
-      setSources(item.allSources);
-    }
-  }, [item.allSources]);
-
-
-
-  useEffect(() => {
-    // Set full width and height for video player
-    if (iframeRef.current) {
-      const containerWidth = iframeRef.current.parentElement?.offsetWidth || 560;
-      const containerHeight = iframeRef.current.parentElement?.offsetHeight || 315;
-      iframeRef.current.setAttribute("width", containerWidth.toString());
-      iframeRef.current.setAttribute("height", containerHeight.toString());
-    }
-
-    // Add to continue watching when video is loaded
-    if (props.movieItem) {
-      addToContinueWatching({ ...props.movieItem, category: props.category });
-    }
-  }, [props.movieItem, props.category]);
-
-  const handleIframeError = () => {
-    // Try next source if available
-    if (currentSourceIndex < sources.length - 1) {
-      setCurrentSourceIndex(currentSourceIndex + 1);
-    }
-  };
-
-  const currentSource = sources[currentSourceIndex];
-
-  return (
-    <div className="video">
-      <div className="video__title">
-        <h2>{item.name}</h2>
-      </div>
-      {currentSource && (
-        <div ref={iframeRef} dangerouslySetInnerHTML={{__html: adBlocker.createAdBlockedIframe(currentSource.url, {
-            width: '100%',
-            height: '400px'
-          }).outerHTML}} />
+      {videos.length > 0 && isPlaying && videos[currentSourceIndex] && (
+        <VideoPlayer url={videos[currentSourceIndex].vidSrcUrl} />
       )}
     </div>
   );
 };
 
 export default VideoList;
+
+const VideoPlayer = ({ url }) => {
+  const iframeRef = useRef(null);
+
+  useEffect(() => {
+    if (iframeRef.current) {
+      const containerWidth = iframeRef.current.parentElement?.offsetWidth || 560;
+      const containerHeight = iframeRef.current.parentElement?.offsetHeight || 315;
+      iframeRef.current.setAttribute("width", containerWidth.toString());
+      iframeRef.current.setAttribute("height", containerHeight.toString());
+    }
+  }, []);
+
+  return (
+    <div
+      ref={iframeRef}
+      dangerouslySetInnerHTML={{
+        __html: adBlocker.createAdBlockedIframe(url, {
+          width: "100%",
+          height: "100vh",
+          allow: "autoplay; fullscreen",
+          autoplay: true, // Ensure autoplay is explicitly set
+        }).outerHTML,
+      }}
+    />
+  );
+};

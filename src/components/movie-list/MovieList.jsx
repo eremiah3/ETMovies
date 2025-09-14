@@ -25,6 +25,7 @@ const MovieList = (props) => {
           case category.animation:
             response = await tmdbApi.getMoviesByGenre(16, params); // Animation genre ID is 16
             break;
+          // Removed anime case
           default:
             response = await tmdbApi.getTvList(props.type, params);
         }

@@ -10,17 +10,15 @@ import { category as cate } from "./../api/tmdbApi";
 const Catalog = () => {
   const { category } = useParams();
 
-
   const getCategoryTitle = (category) => {
     switch (category) {
       case cate.movie:
         return "Movies";
       case cate.tv:
         return "TV Shows";
-      case cate.anime:
-        return "Anime";
       case cate.animation:
         return "Animation";
+      // Removed anime case
       default:
         return "Catalog";
     }
@@ -32,7 +30,7 @@ const Catalog = () => {
 
       <div className="container">
         <div className="section mb-3">
-          <MovieGrid category={category} />
+          <MovieGrid category={category} key={category} />
         </div>
       </div>
     </>

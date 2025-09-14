@@ -25,7 +25,7 @@ const MovieGrid = (props) => {
       let response = null;
 
       if (keyword === undefined) {
-        const params = {};
+        const params = { page };
         switch (props.category) {
           case category.movie:
             response = await tmdbApi.getMoviesList(movieType.popular, params);
@@ -40,6 +40,7 @@ const MovieGrid = (props) => {
       } else {
         const params = {
           query: keyword,
+          page: 1,
         };
         if (props.category === category.animation) {
           response = await tmdbApi.search("movie", { query: keyword, page: 1, with_genres: 16 });
@@ -47,8 +48,8 @@ const MovieGrid = (props) => {
           response = await tmdbApi.search(props.category, params);
         }
       }
-      setItems(response.results);
-      setTotalPage(response.total_pages);
+      setItems(response.results || response.data?.data || []);
+      setTotalPage(response.total_pages || 0);
       setPage(1);
     };
     getList();
@@ -57,32 +58,30 @@ const MovieGrid = (props) => {
   const loadMore = async () => {
     let response = null;
 
-      if (keyword === undefined) {
-        const params = {
-          page: page + 1,
-        };
-        switch (props.category) {
-          case category.movie:
-            response = await tmdbApi.getMoviesList(movieType.popular, params);
-            break;
-          case category.animation:
-            response = await tmdbApi.getMoviesByGenre(16, params);
-            break;
-          default:
-            response = await tmdbApi.getTvList(tvType.popular, params);
-        }
-      } else {
-        const params = {
-          page: page + 1,
-          query: keyword,
-        };
-        if (props.category === category.animation) {
-          response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
-        } else {
-          response = await tmdbApi.search(props.category, params);
-        }
+    if (keyword === undefined) {
+      const params = { page: page + 1 };
+      switch (props.category) {
+        case category.movie:
+          response = await tmdbApi.getMoviesList(movieType.popular, params);
+          break;
+        case category.animation:
+          response = await tmdbApi.getMoviesByGenre(16, params);
+          break;
+        default:
+          response = await tmdbApi.getTvList(tvType.popular, params);
       }
-    setItems([...items, ...response.results]);
+    } else {
+      const params = {
+        query: keyword,
+        page: page + 1,
+      };
+      if (props.category === category.animation) {
+        response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
+      } else {
+        response = await tmdbApi.search(props.category, params);
+      }
+    }
+    setItems([...items, ...(response.results || response.data?.data || [])]);
     setPage(page + 1);
   };
 
@@ -102,9 +101,7 @@ const MovieGrid = (props) => {
             Load more
           </OutlineButton>
         </div>
-      ) : (
-        ""
-      )}
+      ) : null}
     </>
   );
 };
