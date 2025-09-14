@@ -9,7 +9,7 @@ import MovieCard from "../movie-card/MovieCard";
 
 import tmdbApi, { category } from "./../../api/tmdbApi";
 
-const MovieList = (props) => {
+const MovieList = ({ filterTitle, ...props }) => {
   const [items, setItems] = useState([]);
 
   useEffect(() => {
@@ -32,10 +32,10 @@ const MovieList = (props) => {
       } else {
         response = await tmdbApi.similar(props.category, props.id);
       }
-      setItems(response.results);
+      setItems(response.results.filter(item => !filterTitle || item.title !== filterTitle));
     };
     getList();
-  }, [props.category, props.id, props.type]);
+  }, [props.category, props.id, props.type, filterTitle]);
 
   return (
     <div className="movie-list">

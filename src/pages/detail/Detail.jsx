@@ -54,7 +54,7 @@ const Detail = () => {
             </div>
 
             <div className="movie-content__info">
-              <h1 className="title">{item.title || item.name}</h1>
+              <h1 className={`title ${item.title === "Demon Slayer: Kimetsu no Yaiba Infinity Castle" ? "small-title" : ""}`}>{item.title || item.name}</h1>
               <div className="genres">
                 {item.genres &&
                   item.genres.slice(0, 5).map((genre, index) => (
@@ -78,19 +78,19 @@ const Detail = () => {
           </div>
 
           <div className="container">
-            <div className="section mb-3">
-              <VideoList
-                id={item.id}
-                category={category}
-                item={item}
-              />
+          <div className="section mb-3">
+            <VideoList
+              id={item.id}
+              category={category}
+              item={item}
+            />
+          </div>
+          <div className="section mb-3">
+            <div className="section__header mb-2">
+              <h2>Similar</h2>
             </div>
-            <div className="section mb-3">
-              <div className="section__header mb-2">
-                <h2>Similar</h2>
-              </div>
-              <MovieList category={category} type="similar" id={item.id} />
-            </div>
+            <MovieList category={category} type="similar" id={item.id} key={item.id} />
+          </div>
           </div>
         </>
       )}

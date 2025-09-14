@@ -12,7 +12,7 @@ import Input from "../input/Input";
 
 import * as Config from "./../../constants/Config";
 
-const MovieGrid = (props) => {
+const MovieGrid = ({ filterTitle, ...props }) => {
   const [items, setItems] = useState([]);
 
   const [page, setPage] = useState(1);
@@ -48,12 +48,13 @@ const MovieGrid = (props) => {
           response = await tmdbApi.search(props.category, params);
         }
       }
-      setItems(response.results || response.data?.data || []);
+      setItems((response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle));
       setTotalPage(response.total_pages || 0);
       setPage(1);
     };
     getList();
-  }, [keyword, props.category]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyword, props.category, filterTitle]);
 
   const loadMore = async () => {
     let response = null;
@@ -81,7 +82,7 @@ const MovieGrid = (props) => {
         response = await tmdbApi.search(props.category, params);
       }
     }
-    setItems([...items, ...(response.results || response.data?.data || [])]);
+    setItems([...items, ...(response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle)]);
     setPage(page + 1);
   };
 

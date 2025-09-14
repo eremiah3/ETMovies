@@ -122,7 +122,7 @@ const HeroSlide = () => {
         const response = await tmdbApi.getMoviesList(movieType.popular, {
           params,
         });
-        setMovieItems(response.results.slice(0, 4));
+        setMovieItems(response.results.filter(item => item.title !== "Demon Slayer: Kimetsu no Yaiba Infinity Castle").slice(0, 4));
         console.log(response);
       } catch {
         console.log("error");

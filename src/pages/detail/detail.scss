@@ -74,6 +74,10 @@
       line-height: 1;
     }
 
+    .small-title {
+      font-size: 1.5rem;
+    }
+
     .genres {
       & > * ~ * {
         margin-left: 0.5rem;

@@ -30,7 +30,7 @@ const Catalog = () => {
 
       <div className="container">
         <div className="section mb-3">
-          <MovieGrid category={category} key={category} />
+          <MovieGrid category={category} key={category} filterTitle={category === cate.movie ? "Demon Slayer: Kimetsu no Yaiba Infinity Castle" : null} />
         </div>
       </div>
     </>

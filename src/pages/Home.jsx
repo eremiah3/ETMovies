@@ -25,7 +25,7 @@ const Home = () => {
               <OutlineButton className="small">View more</OutlineButton>
             </Link>
           </div>
-          <MovieList category={category.movie} type={movieType.popular} />
+          <MovieList category={category.movie} type={movieType.popular} filterTitle="Demon Slayer: Kimetsu no Yaiba Infinity Castle" key="popular" />
         </div>
 
         <div className="section mb-3">
@@ -35,7 +35,7 @@ const Home = () => {
               <OutlineButton className="small">View more</OutlineButton>
             </Link>
           </div>
-          <MovieList category={category.movie} type={movieType.top_rated} />
+          <MovieList category={category.movie} type={movieType.top_rated} filterTitle="Demon Slayer: Kimetsu no Yaiba Infinity Castle" key="top_rated" />
         </div>
 
         <div className="section mb-3">
