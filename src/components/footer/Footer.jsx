@@ -25,9 +25,9 @@ const Footer = () => {
           <p>If you enjoy our site, consider supporting us to keep it running.</p>
           <div className="donation-details">
             <p><strong>Bank Transfer (Naira):</strong></p>
-            <p>Account Name: Oluwatoyin Agboola</p>
-            <p>Account Number: 2095003586</p>
-            <p>Bank: Addosser Microfinance Bank</p>
+            <p>Account Name: Omogbolahan Jeremiah Agboola</p>
+            <p>Account Number: 9065291459</p>
+            <p>Bank: Opay Microfinance Bank</p>
           </div>
         </div>
 

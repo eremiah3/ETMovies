@@ -1,6 +1,7 @@
 import "swiper/swiper.min.css";
 import "./assets/boxicons-2.0.7/css/boxicons.min.css";
 import "./App.scss";
+import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import { BrowserRouter, Route } from "react-router-dom";
 
@@ -30,5 +31,6 @@ function App() {
     </AuthProvider>
   );
 }
+
 
 export default App;

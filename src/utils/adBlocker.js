@@ -132,7 +132,7 @@ class AdBlocker {
     iframe.src = src;
     iframe.width = '100%';
     iframe.height = '100%';
-    iframe.allowFullscreen = true;
+    iframe.allowFullscreen = false; // Disable iframe fullscreen to allow custom controls
     iframe.frameBorder = '0';
 
     // Add ad blocking when iframe loads
