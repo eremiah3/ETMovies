@@ -308,12 +308,11 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
     const handleMessage = (event) => {
       console.log("Received postMessage:", event.data);
       try {
+        let ended = false;
         if (typeof event.data === "string") {
           const msg = event.data.toLowerCase();
           if (msg.includes("end") || msg.includes("finish") || msg.includes("complete") || msg.includes("done")) {
-            console.log("Detected video end via postMessage:", msg);
-            clearOverlayTimers();
-            triggerOverlayAndAutoNext();
+            ended = true;
           }
         } else if (typeof event.data === "object" && (
           event.data?.event === "ended" ||
@@ -321,9 +320,12 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
           event.data?.status === "finished" ||
           event.data?.playback === "ended"
         )) {
-          console.log("Detected video end via object postMessage:", event.data);
+          ended = true;
+        }
+        if (ended) {
+          console.log("Detected video end, showing overlay");
           clearOverlayTimers();
-          triggerOverlayAndAutoNext();
+          setShowNextOverlay(true);
         }
       } catch (e) {
         console.error("Error parsing postMessage:", e);
@@ -339,60 +341,10 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
   }, []);
 
   // Use TMDB runtime to schedule overlay
-  useEffect(() => {
-    clearOverlayTimers();
+  // Only show overlay and auto-next when video truly ends.
 
-    const effectiveRuntime = (runtime && Number(runtime) > 5) ? Number(runtime) : DEFAULT_RUNTIME_MIN * 60;
-    const triggerAtMs = Math.max(0, (effectiveRuntime - OVERLAY_SHOW_BEFORE) * 1000);
-    const safeTrigger = triggerAtMs > 0 ? triggerAtMs : 5000;
-
-    console.log(`Scheduling overlay at ${safeTrigger/1000}s (runtime: ${effectiveRuntime}s)`);
-
-    overlayTimerRef.current = setTimeout(() => {
-      console.log("Overlay triggered by runtime timer");
-      triggerOverlayAndAutoNext();
-    }, safeTrigger);
-
-    return () => {
-      clearOverlayTimers();
-    };
-  }, [url, runtime]);
-
-  // UPDATED: Auto-play next season/episode after countdown
-  const triggerOverlayAndAutoNext = () => {
-    console.log("Triggering overlay with nextPreview:", nextPreview, "posterUrl:", posterUrl);
-    setShowNextOverlay(true);
-    setCountdown(OVERLAY_COUNTDOWN);
-
-    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
-    let counter = OVERLAY_COUNTDOWN;
-    countdownIntervalRef.current = setInterval(() => {
-      counter -= 1;
-      setCountdown(counter);
-      if (counter <= 0) {
-        clearInterval(countdownIntervalRef.current);
-        countdownIntervalRef.current = null;
-        setShowNextOverlay(false);
-        setCountdown(OVERLAY_COUNTDOWN);
-        if (onNext) {
-          console.log("Auto-playing next content");
-          onNext();
-        } else {
-          console.log("No next content to play");
-        }
-      }
-    }, 1000);
-  };
 
   const handlePlayNow = () => {
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    if (overlayTimerRef.current) {
-      clearTimeout(overlayTimerRef.current);
-      overlayTimerRef.current = null;
-    }
     setShowNextOverlay(false);
     setCountdown(OVERLAY_COUNTDOWN);
     if (onNext) {
@@ -423,7 +375,6 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
         width: "100%",
         height: "100vh",
         allow: "autoplay; fullscreen",
-        autoplay: true,
       });
 
       iframe.onload = () => {
@@ -523,14 +474,14 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
             <div style={{ color: "#fff", textAlign: "left" }}>
               <h3 style={{ margin: 0, fontSize: 20 }}>{nextPreview?.title || "Next Episode"}</h3>
               <p style={{ marginTop: 8, color: "#ddd" }}>
-                {nextPreview?.title.includes("Season") ? "Next season" : nextPreview?.title.includes("End of Series") ? "Series ended" : "Next episode"} starts in <strong style={{ color: "#ffd14d" }}>{countdown}s</strong>
+                {nextPreview?.title?.includes("Season") ? "Next season" : nextPreview?.title?.includes("End of Series") ? "Series ended" : "Next episode"}
               </p>
 
               <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
                 <button onClick={handlePlayNow} style={{
                   background: "#e50914", border: "none", color: "#fff", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontWeight: 600
                 }}>
-                  ▶ Play Now
+                  ▶ Play Next
                 </button>
 
                 <button onClick={() => { setShowNextOverlay(false); setCountdown(OVERLAY_COUNTDOWN); }} style={{
@@ -574,4 +525,4 @@ const overlayStyle = {
   boxSizing: "border-box",
 };
 
-// export default VideoList;
+// ...existing code...

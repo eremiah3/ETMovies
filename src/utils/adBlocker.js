@@ -128,12 +128,13 @@ class AdBlocker {
     wrapper.style.width = options.width || '100%';
     wrapper.style.height = options.height || '400px';
 
-    const iframe = document.createElement('iframe');
-    iframe.src = src;
-    iframe.width = '100%';
-    iframe.height = '100%';
-    iframe.allowFullscreen = false; // Disable iframe fullscreen to allow custom controls
-    iframe.frameBorder = '0';
+  const iframe = document.createElement('iframe');
+  iframe.src = src;
+  iframe.width = '100%';
+  iframe.height = '100%';
+  iframe.allowFullscreen = true; // Enable fullscreen for better compatibility
+  iframe.setAttribute('allowfullscreen', 'true');
+  iframe.frameBorder = '0';
 
     // Add ad blocking when iframe loads
     iframe.onload = () => {
