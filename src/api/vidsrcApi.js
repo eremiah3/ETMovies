@@ -3,10 +3,10 @@ const vidsrcApi = {
   getMovieStream: (movieId) => {
     // Primary sources with fallbacks using official VidSrc domains
     const sources = [
-      { url: `https://vidsrc.in/embed/movie/${movieId}`, source: "vidsrc.in" },
-      { url: `https://vidsrc.pm/embed/movie/${movieId}`, source: "vidsrc.pm" },
-      { url: `https://vidsrc.xyz/embed/movie/${movieId}`, source: "vidsrc.xyz" },
-      { url: `https://vidsrc.net/embed/movie/${movieId}`, source: "vidsrc.net" },
+      { url: `https://vidsrcme.ru/embed/movie/${movieId}`, source: "vidsrcme.ru" },
+      { url: `https://vidsrcme.su/embed/movie/${movieId}`, source: "vidsrcme.su" },
+      { url: `https://vidsrc-me.su/embed/movie/${movieId}`, source: "vidsrc-me.su" },
+      { url: `https://vidsrc-embed.ru/embed/movie/${movieId}`, source: "vidsrc-embed.ru" },
       { url: `https://www.cloudstream.pro/embed/movie/${movieId}`, source: "cloudstream pro" }
     ];
 
@@ -16,10 +16,10 @@ const vidsrcApi = {
   // Get streaming URL for TV shows with multiple fallbacks
   getTvStream: (tvId, season = 1, episode = 1) => {
     const sources = [
-      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
-      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
-      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
-      { url: `https://vidsrc.in/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.in" },
+      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
+      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
+      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
+      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
       { url: `https://www.cloudstream.pro/embed/tv/${tvId}/${season}/${episode}`, source: "cloudstream pro" }
     ];
 

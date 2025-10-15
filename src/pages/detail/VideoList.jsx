@@ -1,12 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import tmdbApi from "../../api/tmdbApi";
 import vidsrcApi from "../../api/vidsrcApi";
 import adBlocker from "../../utils/adBlocker";
 
 const DEFAULT_RUNTIME_MIN = 20; // fallback runtime in minutes
-const OVERLAY_SHOW_BEFORE = 10; // seconds before end to show overlay
-const OVERLAY_COUNTDOWN = 5; // seconds countdown in overlay
 
 const VideoList = (props) => {
   const { category } = useParams();
@@ -19,11 +17,10 @@ const VideoList = (props) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [runtime, setRuntime] = useState(null); // seconds
-  const [nextPreview, setNextPreview] = useState(null); // {title, still_path}
   const [posterUrl, setPosterUrl] = useState(null);
 
   // Fetch video sources and runtime info
-  const getVideos = async () => {
+  const getVideos = useCallback(async () => {
     try {
       if (props.category === "movie" || category === "movie") {
         const sources = await vidsrcApi.getMovieStream(props.id);
@@ -77,86 +74,61 @@ const VideoList = (props) => {
 
           const showData = await tmdbApi.detail(props.category, props.id);
           setPosterUrl(showData?.poster_path ? `https://image.tmdb.org/t/p/w780${showData.poster_path}` : null);
-
-          const epIndex = episode;
-          const episodesList = await tmdbApi.getEpisodes(props.id, season);
-          const nextEpisodeObj = episodesList?.episodes?.find(e => e.episode_number === epIndex + 1);
-          if (nextEpisodeObj) {
-            setNextPreview({
-              title: nextEpisodeObj.name || `Episode ${nextEpisodeObj.episode_number}`,
-              still_path: nextEpisodeObj.still_path || null,
-            });
-          } else {
-            const currentSeasonIndex = seasons.findIndex(s => s.season_number === season);
-            if (currentSeasonIndex + 1 < seasons.length) {
-              const nextSeason = seasons[currentSeasonIndex + 1];
-              setNextPreview({
-                title: nextSeason.name || `Season ${nextSeason.season_number}`,
-                still_path: nextSeason.poster_path || null,
-              });
-            } else {
-              setNextPreview({
-                title: showData?.name || "End of Series",
-                still_path: null,
-              });
-            }
-          }
         } catch (err) {
           console.error("Error fetching TV details:", err);
           setRuntime(DEFAULT_RUNTIME_MIN * 60);
-          setNextPreview(null);
           setPosterUrl(null);
         }
       }
     } catch (error) {
       console.error("Error fetching videos or runtime:", error);
     }
-  };
+  }, [props.id, props.category, props.season, props.episode, category, selectedSeason, selectedEpisode]);
 
   useEffect(() => {
     setIsPlaying(true);
     getVideos();
     return () => {
       setRuntime(null);
-      setNextPreview(null);
     };
-  }, [props.category, category, props.id, selectedSeason, selectedEpisode]);
+  }, [props.category, category, props.id, selectedSeason, selectedEpisode, getVideos]);
+
+  const getSeasons = useCallback(async () => {
+    if (props.category === "tv" || category === "tv") {
+      try {
+        const data = await tmdbApi.getSeasons(props.id);
+        setSeasons(data.seasons || []);
+        if (data.seasons?.length) setSelectedSeason(data.seasons[0].season_number);
+      } catch (error) {
+        console.error("Error fetching seasons:", error);
+      }
+    }
+  }, [props.id, props.category, category]);
 
   useEffect(() => {
-    const getSeasons = async () => {
-      if (props.category === "tv" || category === "tv") {
-        try {
-          const data = await tmdbApi.getSeasons(props.id);
-          setSeasons(data.seasons || []);
-          if (data.seasons?.length) setSelectedSeason(data.seasons[0].season_number);
-        } catch (error) {
-          console.error("Error fetching seasons:", error);
-        }
-      }
-    };
     getSeasons();
-  }, [props.category, category, props.id]);
+  }, [props.category, category, props.id, getSeasons]);
+
+  const getEpisodes = useCallback(async () => {
+    if ((props.category === "tv" || category === "tv") && selectedSeason !== null) {
+      try {
+        const data = await tmdbApi.getEpisodes(props.id, selectedSeason);
+        setEpisodes(data.episodes || []);
+        if (data.episodes?.length) {
+          setSelectedEpisode(data.episodes[0].episode_number);
+          setIsPlaying(true);
+        }
+      } catch (error) {
+        console.error("Error fetching episodes:", error);
+      }
+    }
+  }, [props.id, props.category, category, selectedSeason]);
 
   useEffect(() => {
-    const getEpisodes = async () => {
-      if ((props.category === "tv" || category === "tv") && selectedSeason !== null) {
-        try {
-          const data = await tmdbApi.getEpisodes(props.id, selectedSeason);
-          setEpisodes(data.episodes || []);
-          if (data.episodes?.length) {
-            setSelectedEpisode(data.episodes[0].episode_number);
-            setIsPlaying(true);
-          }
-        } catch (error) {
-          console.error("Error fetching episodes:", error);
-        }
-      }
-    };
     getEpisodes();
-  }, [props.category, category, props.id, selectedSeason]);
+  }, [props.category, category, props.id, selectedSeason, getEpisodes]);
 
   const handleNextEpisode = () => {
-    setNextPreview(null);
     if (props.category === "tv" || category === "tv") {
       if (selectedEpisode < episodes.length) {
         setSelectedEpisode((s) => s + 1);
@@ -175,7 +147,6 @@ const VideoList = (props) => {
   };
 
   const handlePrevEpisode = () => {
-    setNextPreview(null);
     if (props.category === "tv" || category === "tv") {
       if (selectedEpisode > 1) {
         setSelectedEpisode((s) => s - 1);
@@ -236,7 +207,6 @@ const VideoList = (props) => {
           onNext={(props.category === "tv" || category === "tv") ? handleNextEpisode : null}
           onPrev={(props.category === "tv" || category === "tv") ? handlePrevEpisode : null}
           runtime={runtime}
-          nextPreview={nextPreview}
           posterUrl={posterUrl}
         />
       )}
@@ -247,16 +217,11 @@ const VideoList = (props) => {
 export default VideoList;
 
 /* -------------------- VideoPlayer -------------------- */
-const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) => {
+const VideoPlayer = ({ url, onNext, onPrev, runtime, posterUrl }) => {
   const playerRef = useRef(null);
   const iframeContainerRef = useRef(null);
-  const messageListenerRef = useRef(null);
-  const overlayTimerRef = useRef(null);
-  const countdownIntervalRef = useRef(null);
 
   const [showControls, setShowControls] = useState(true);
-  const [showNextOverlay, setShowNextOverlay] = useState(false);
-  const [countdown, setCountdown] = useState(OVERLAY_COUNTDOWN);
   const [videoLoaded, setVideoLoaded] = useState(false);
 
   // fullscreen helper
@@ -289,81 +254,6 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
     };
   }, []);
 
-  // helper to clear overlay timers
-  const clearOverlayTimers = () => {
-    if (overlayTimerRef.current) {
-      clearTimeout(overlayTimerRef.current);
-      overlayTimerRef.current = null;
-    }
-    if (countdownIntervalRef.current) {
-      clearInterval(countdownIntervalRef.current);
-      countdownIntervalRef.current = null;
-    }
-    setShowNextOverlay(false);
-    setCountdown(OVERLAY_COUNTDOWN);
-  };
-
-  // Handle postMessage for video end events
-  useEffect(() => {
-    const handleMessage = (event) => {
-      console.log("Received postMessage:", event.data);
-      try {
-        let ended = false;
-        if (typeof event.data === "string") {
-          const msg = event.data.toLowerCase();
-          if (msg.includes("end") || msg.includes("finish") || msg.includes("complete") || msg.includes("done")) {
-            ended = true;
-          }
-        } else if (typeof event.data === "object" && (
-          event.data?.event === "ended" ||
-          event.data?.type === "ended" ||
-          event.data?.status === "finished" ||
-          event.data?.playback === "ended"
-        )) {
-          ended = true;
-        }
-        if (ended) {
-          console.log("Detected video end, showing overlay");
-          clearOverlayTimers();
-          setShowNextOverlay(true);
-        }
-      } catch (e) {
-        console.error("Error parsing postMessage:", e);
-      }
-    };
-
-    window.addEventListener("message", handleMessage);
-    messageListenerRef.current = handleMessage;
-    return () => {
-      window.removeEventListener("message", handleMessage);
-      messageListenerRef.current = null;
-    };
-  }, []);
-
-  // Use TMDB runtime to schedule overlay
-  // Only show overlay and auto-next when video truly ends.
-
-
-  const handlePlayNow = () => {
-    setShowNextOverlay(false);
-    setCountdown(OVERLAY_COUNTDOWN);
-    if (onNext) {
-      console.log("Manually playing next content");
-      onNext();
-    }
-  };
-
-  // cleanup on unmount
-  useEffect(() => {
-    return () => {
-      clearOverlayTimers();
-      if (messageListenerRef.current) {
-        window.removeEventListener("message", messageListenerRef.current);
-        messageListenerRef.current = null;
-      }
-    };
-  }, []);
-
   // Manually create and append iframe with onload
   useEffect(() => {
     const container = iframeContainerRef.current;
@@ -389,16 +279,6 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
       };
     }
   }, [url]);
-
-  // helper to build TMDB image url
-  const buildImageUrl = (path) => {
-    if (!path) return null;
-    return `https://image.tmdb.org/t/p/w780${path}`;
-  };
-
-  // Preview URL with fallback to posterUrl
-  const previewImageUrl = nextPreview?.still_path ? buildImageUrl(nextPreview.still_path) : (posterUrl || null);
-  console.log("Preview image URL:", previewImageUrl);
 
   return (
     <div
@@ -452,48 +332,6 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, nextPreview, posterUrl }) =
           <i className="fas fa-expand"></i>
         </button>
       </div>
-
-      {/* Show overlay whenever triggered */}
-      {showNextOverlay && (
-        <div style={overlayStyle}>
-          <div style={{ display: "flex", gap: 24, alignItems: "center", maxWidth: 980, padding: 12 }}>
-            {/* preview image with fallback */}
-            {previewImageUrl ? (
-              <img
-                src={previewImageUrl}
-                alt={nextPreview?.title || "Next Preview"}
-                style={{ width: 260, height: 146, objectFit: "cover", borderRadius: 6, boxShadow: "0 8px 30px rgba(0,0,0,0.6)" }}
-                onError={(e) => { e.target.style.display = 'none'; }}
-              />
-            ) : (
-              <div style={{ width: 260, height: 146, background: "#222", borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ color: "#999" }}>No preview</span>
-              </div>
-            )}
-
-            <div style={{ color: "#fff", textAlign: "left" }}>
-              <h3 style={{ margin: 0, fontSize: 20 }}>{nextPreview?.title || "Next Episode"}</h3>
-              <p style={{ marginTop: 8, color: "#ddd" }}>
-                {nextPreview?.title?.includes("Season") ? "Next season" : nextPreview?.title?.includes("End of Series") ? "Series ended" : "Next episode"}
-              </p>
-
-              <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-                <button onClick={handlePlayNow} style={{
-                  background: "#e50914", border: "none", color: "#fff", padding: "10px 16px", borderRadius: 6, cursor: "pointer", fontWeight: 600
-                }}>
-                  ▶ Play Next
-                </button>
-
-                <button onClick={() => { setShowNextOverlay(false); setCountdown(OVERLAY_COUNTDOWN); }} style={{
-                  background: "transparent", border: "1px solid rgba(255,255,255,0.14)", color: "#fff", padding: "10px 12px", borderRadius: 6, cursor: "pointer"
-                }}>
-                  Dismiss
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
@@ -511,18 +349,6 @@ const controlBtnStyle = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-};
-
-const overlayStyle = {
-  position: "absolute",
-  inset: 0,
-  background: "linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.85))",
-  display: "flex",
-  justifyContent: "center",
-  alignItems: "center",
-  zIndex: 10000,
-  padding: 20,
-  boxSizing: "border-box",
 };
 
 // ...existing code...
