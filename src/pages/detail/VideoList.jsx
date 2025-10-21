@@ -284,44 +284,68 @@ const VideoPlayer = ({ url, sources = [], onNext, onPrev, runtime, posterUrl }) 
     setVideoLoaded(false);
     setLoadError(null);
 
-    const wrapper = adBlocker.createAdBlockedIframe(src, { width: '100%', height: '100vh', allow: 'autoplay; fullscreen' });
-    container.appendChild(wrapper);
-
-    // Find inner iframe to attach events
-    const innerIframe = wrapper.querySelector && wrapper.querySelector('iframe');
-
-    let loadTimeout = setTimeout(() => {
-      console.warn('Iframe load timeout for', src);
-      tryFallback();
-    }, 10000);
-
-    if (innerIframe) {
-      const onLoad = () => {
-        clearTimeout(loadTimeout);
-        setVideoLoaded(true);
-        setLoadError(null);
-      };
-      innerIframe.addEventListener('load', onLoad);
-      cleanupFns.push(() => innerIframe.removeEventListener('load', onLoad));
-    }
-
-    // listen for postMessage errors (some players send 'fragLoadError' or similar)
-    const onMessage = (e) => {
+    // Try a server-side preflight if available to pick a healthy source
+    const tryUsePreflight = async (candidateUrls) => {
       try {
-        const d = e.data;
-        if (typeof d === 'string' && d.toLowerCase().includes('fragloaderror')) {
-          console.warn('Received fragLoadError message from iframe:', d);
-          tryFallback();
-        }
+        const resp = await fetch('http://localhost:4000/preflight', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ urls: candidateUrls }),
+        });
+        if (!resp.ok) return null;
+        const j = await resp.json();
+        return j.okUrl || null;
       } catch (err) {
-        // ignore
+        return null;
       }
     };
-    window.addEventListener('message', onMessage);
-    cleanupFns.push(() => window.removeEventListener('message', onMessage));
 
+    (async () => {
+      const candidates = sources && sources.length ? sources.map(s => s.url) : [src];
+      const ok = await tryUsePreflight(candidates);
+      const finalSrc = ok || src;
+
+      const wrapper = adBlocker.createAdBlockedIframe(finalSrc, { width: '100%', height: '100vh', allow: 'autoplay; fullscreen' });
+      container.appendChild(wrapper);
+
+      // Find inner iframe to attach events
+      const innerIframe = wrapper.querySelector && wrapper.querySelector('iframe');
+
+      let loadTimeout = setTimeout(() => {
+        console.warn('Iframe load timeout for', finalSrc);
+        tryFallback();
+      }, 10000);
+
+      if (innerIframe) {
+        const onLoad = () => {
+          clearTimeout(loadTimeout);
+          setVideoLoaded(true);
+          setLoadError(null);
+        };
+        innerIframe.addEventListener('load', onLoad);
+        cleanupFns.push(() => innerIframe.removeEventListener('load', onLoad));
+      }
+
+      // listen for postMessage errors (some players send 'fragLoadError' or similar)
+      const onMessage = (e) => {
+        try {
+          const d = e.data;
+          if (typeof d === 'string') {
+            const low = d.toLowerCase();
+            if (low.includes('fragloaderror') || low.includes('networkerror') || low.includes('error')) {
+              console.warn('Received player error message from iframe:', d);
+              tryFallback();
+            }
+          }
+        } catch (err) {
+          // ignore
+        }
+      };
+      window.addEventListener('message', onMessage);
+      cleanupFns.push(() => window.removeEventListener('message', onMessage));
+
+    })();
     return () => {
-      clearTimeout(loadTimeout);
       cleanupFns.forEach((fn) => fn());
       if (container) container.innerHTML = '';
     };

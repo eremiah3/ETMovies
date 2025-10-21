@@ -12,8 +12,7 @@ const AnimatedBackground = ({ variant = 'default' }) => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    let shapes = [];
-    let time = 0;
+  let shapes = [];
 
     class MorphingShape {
       constructor() {
@@ -173,7 +172,7 @@ const AnimatedBackground = ({ variant = 'default' }) => {
         shape.draw();
       });
 
-      time += 0.01;
+  // animation tick (time variable removed)
       animationRef.current = requestAnimationFrame(animate);
     };
 

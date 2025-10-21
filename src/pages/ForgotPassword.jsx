@@ -44,14 +44,13 @@ const ForgotPassword = () => {
         </p>
 
         {error && <div className="error">{error}</div>}
-       // In ForgotPassword.jsx, add this message
-{message && (
-  <div className="success">
-    <p>✅ Password reset email sent!</p>
-    <p><strong>Check your inbox</strong> (and spam folder) for the reset link.</p>
-    <p>If you don't see it, try adding <code>noreply@firebase.com</code> to your contacts.</p>
-  </div>
-)}
+        {message && (
+          <div className="success">
+            <p>✅ Password reset email sent!</p>
+            <p><strong>Check your inbox</strong> (and spam folder) for the reset link.</p>
+            <p>If you don't see it, try adding <code>noreply@firebase.com</code> to your contacts.</p>
+          </div>
+        )}
 
         <div className="input-group">
           <input
