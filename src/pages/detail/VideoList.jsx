@@ -62,7 +62,7 @@ const VideoList = (props) => {
             key: `${props.id}-${season}-${episode}`,
             vidSrcUrl: sources[0]?.url,
             source: sources[0]?.source,
-            allSources: [sources[0]],
+            allSources: sources,
           },
         ]);
         setCurrentSourceIndex(0);
@@ -204,6 +204,7 @@ const VideoList = (props) => {
       {videos.length > 0 && isPlaying && videos[currentSourceIndex] && (
         <VideoPlayer
           url={videos[currentSourceIndex].vidSrcUrl}
+          sources={videos[currentSourceIndex].allSources || []}
           onNext={(props.category === "tv" || category === "tv") ? handleNextEpisode : null}
           onPrev={(props.category === "tv" || category === "tv") ? handlePrevEpisode : null}
           runtime={runtime}
@@ -217,12 +218,14 @@ const VideoList = (props) => {
 export default VideoList;
 
 /* -------------------- VideoPlayer -------------------- */
-const VideoPlayer = ({ url, onNext, onPrev, runtime, posterUrl }) => {
+const VideoPlayer = ({ url, sources = [], onNext, onPrev, runtime, posterUrl }) => {
   const playerRef = useRef(null);
   const iframeContainerRef = useRef(null);
 
   const [showControls, setShowControls] = useState(true);
   const [videoLoaded, setVideoLoaded] = useState(false);
+  const [currentSourceIdx, setCurrentSourceIdx] = useState(0);
+  const [loadError, setLoadError] = useState(null);
 
   // fullscreen helper
   const handleFullscreen = () => {
@@ -254,68 +257,122 @@ const VideoPlayer = ({ url, onNext, onPrev, runtime, posterUrl }) => {
     };
   }, []);
 
-  // Manually create and append iframe with onload
+  // Try to load iframe from current source (either explicit url or sources[currentSourceIdx])
   useEffect(() => {
     const container = iframeContainerRef.current;
-    if (container && url) {
-      container.innerHTML = '';
-      setVideoLoaded(false);
+    if (!container) return;
 
-      const iframe = adBlocker.createAdBlockedIframe(url, {
-        width: "100%",
-        height: "100vh",
-        allow: "autoplay; fullscreen",
-      });
+    let cleanupFns = [];
 
-      iframe.onload = () => {
-        setVideoLoaded(true);
-      };
+    const tryFallback = () => {
+      const next = currentSourceIdx + 1;
+      if (sources && next < sources.length) {
+        setCurrentSourceIdx(next);
+      } else {
+        setLoadError('Could not load video from available sources (network error).');
+      }
+    };
 
-      container.appendChild(iframe);
-
-      return () => {
-        iframe.onload = null;
-        if (container) container.innerHTML = '';
-      };
+    const src = url || (sources[currentSourceIdx] && sources[currentSourceIdx].url);
+    if (!src) {
+      setLoadError('No video source available');
+      return;
     }
-  }, [url]);
+
+    // clear container and reset states
+    container.innerHTML = '';
+    setVideoLoaded(false);
+    setLoadError(null);
+
+    const wrapper = adBlocker.createAdBlockedIframe(src, { width: '100%', height: '100vh', allow: 'autoplay; fullscreen' });
+    container.appendChild(wrapper);
+
+    // Find inner iframe to attach events
+    const innerIframe = wrapper.querySelector && wrapper.querySelector('iframe');
+
+    let loadTimeout = setTimeout(() => {
+      console.warn('Iframe load timeout for', src);
+      tryFallback();
+    }, 10000);
+
+    if (innerIframe) {
+      const onLoad = () => {
+        clearTimeout(loadTimeout);
+        setVideoLoaded(true);
+        setLoadError(null);
+      };
+      innerIframe.addEventListener('load', onLoad);
+      cleanupFns.push(() => innerIframe.removeEventListener('load', onLoad));
+    }
+
+    // listen for postMessage errors (some players send 'fragLoadError' or similar)
+    const onMessage = (e) => {
+      try {
+        const d = e.data;
+        if (typeof d === 'string' && d.toLowerCase().includes('fragloaderror')) {
+          console.warn('Received fragLoadError message from iframe:', d);
+          tryFallback();
+        }
+      } catch (err) {
+        // ignore
+      }
+    };
+    window.addEventListener('message', onMessage);
+    cleanupFns.push(() => window.removeEventListener('message', onMessage));
+
+    return () => {
+      clearTimeout(loadTimeout);
+      cleanupFns.forEach((fn) => fn());
+      if (container) container.innerHTML = '';
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, sources, currentSourceIdx]);
+
+  const ErrorBanner = () => (
+    loadError ? (
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, background: '#c62828', color: '#fff', padding: '8px 12px', zIndex: 10001 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>{loadError}</div>
+          <div>
+            <button onClick={() => { setCurrentSourceIdx(0); setLoadError(null); }} style={{ background: '#fff', color: '#000', border: 'none', padding: '6px 10px', borderRadius: 4 }}>Retry</button>
+          </div>
+        </div>
+      </div>
+    ) : null
+  );
 
   return (
     <div
       ref={playerRef}
       style={{
-        position: "relative",
-        width: "100%",
-        height: "100vh",
-        background: "#000",
-        backgroundImage: (!videoLoaded && posterUrl) ? `url(${posterUrl})` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
+        position: 'relative',
+        width: '100%',
+        height: '100vh',
+        background: '#000',
+        backgroundImage: (!videoLoaded && posterUrl) ? `url(${posterUrl})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
       }}
     >
+      <ErrorBanner />
       <div
         ref={iframeContainerRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-        }}
+        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
       />
 
       {/* Floating controls placed inside video container (auto-hide) */}
       <div
         style={{
-          position: "absolute",
-          bottom: "20px",
-          right: "40px",
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
+          position: 'absolute',
+          bottom: '20px',
+          right: '40px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '10px',
           opacity: showControls ? 1 : 0,
-          transition: "opacity 0.3s ease",
+          transition: 'opacity 0.3s ease',
           zIndex: 9999,
-          pointerEvents: showControls ? "auto" : "none",
+          pointerEvents: showControls ? 'auto' : 'none',
         }}
       >
         {onPrev && (
