@@ -12,8 +12,18 @@ const CastList = (props) => {
 
   useEffect(() => {
     const getCredits = async () => {
-      const res = await tmdbApi.credits(category, props.id);
-      setCasts(res.cast.slice(0, 5));
+      try {
+        const apiCategory = category === "nollywood" ? "movie" : category;
+        const res = await tmdbApi.credits(apiCategory, props.id);
+        if (res && res.cast) {
+          setCasts(res.cast.slice(0, 5));
+        } else {
+          setCasts([]);
+        }
+      } catch (error) {
+        console.error(`Error fetching credits for ${category}/${props.id}:`, error);
+        setCasts([]);
+      }
     };
     getCredits();
   }, [category, props.id]);

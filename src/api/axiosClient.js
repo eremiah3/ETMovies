@@ -23,6 +23,20 @@ axiosClient.interceptors.response.use(
     return response;
   },
   (error) => {
+    if (error.response) {
+      // Server responded with error status
+      console.error(`API Error ${error.response.status}:`, {
+        status: error.response.status,
+        data: error.response.data,
+        config: error.config
+      });
+    } else if (error.request) {
+      // Request was made but no response received
+      console.error("No response from server:", error.request);
+    } else {
+      // Other errors
+      console.error("Error:", error.message);
+    }
     throw error;
   }
 );

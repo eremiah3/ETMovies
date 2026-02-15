@@ -17,25 +17,34 @@ const MovieList = ({ filterTitle, ...props }) => {
       let response = null;
       const params = {};
 
-      if (props.type !== "similar") {
-        switch (props.category) {
-          case category.movie:
-            response = await tmdbApi.getMoviesList(props.type, params);
-            break;
-          case category.animation:
-            response = await tmdbApi.getMoviesByGenre(16, params); // Animation genre ID is 16
-            break;
-          case category.nollywood:
-            response = await tmdbApi.getNollywoodMovies(params); // Strictly Nigerian movies
-            break;
-          // Removed anime case
-          default:
-            response = await tmdbApi.getTvList(props.type, params);
+      try {
+        if (props.type !== "similar") {
+          switch (props.category) {
+            case category.movie:
+              response = await tmdbApi.getMoviesList(props.type, params);
+              break;
+            case category.animation:
+              response = await tmdbApi.getMoviesByGenre(16, params); // Animation genre ID is 16
+              break;
+            case category.nollywood:
+              response = await tmdbApi.getNollywoodMovies(params); // Strictly Nigerian movies
+              break;
+            // Removed anime case
+            default:
+              response = await tmdbApi.getTvList(props.type, params);
+          }
+        } else {
+          response = await tmdbApi.similar(props.category, props.id);
         }
-      } else {
-        response = await tmdbApi.similar(props.category, props.id);
+        if (response && response.results) {
+          setItems(response.results.filter(item => !filterTitle || item.title !== filterTitle));
+        } else {
+          setItems([]);
+        }
+      } catch (error) {
+        console.error(`Error fetching ${props.category} list:`, error);
+        setItems([]);
       }
-      setItems(response.results.filter(item => !filterTitle || item.title !== filterTitle));
     };
     getList();
   }, [props.category, props.id, props.type, filterTitle]);

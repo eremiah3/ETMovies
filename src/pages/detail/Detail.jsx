@@ -16,13 +16,22 @@ const Detail = () => {
   useEffect(() => {
     const getDetail = async () => {
       let response;
-      if (category === "anime") {
-        // Removed anime handling
-        response = null;
-      } else {
-        response = await tmdbApi.detail(category, id, { params: {} });
+      try {
+        if (category === "anime") {
+          // Removed anime handling
+          response = null;
+        } else if (category === "nollywood") {
+          response = await tmdbApi.detail("movie", id, { params: {} });
+        } else {
+          response = await tmdbApi.detail(category, id, { params: {} });
+        }
+        if (response) {
+          setItem(response);
+        }
+      } catch (error) {
+        console.error(`Error fetching detail for ${category}/${id}:`, error);
+        setItem(null);
       }
-      setItem(response);
       window.scrollTo(0, 0);
     };
     getDetail();
@@ -81,7 +90,7 @@ const Detail = () => {
           <div className="section mb-3">
             <VideoList
               id={item.id}
-              category={category}
+              category={category === "nollywood" ? "movie" : category}
               item={item}
             />
           </div>
@@ -89,7 +98,7 @@ const Detail = () => {
             <div className="section__header mb-2">
               <h2>Similar</h2>
             </div>
-            <MovieList category={category} type="similar" id={item.id} key={item.id} />
+            <MovieList category={category === "nollywood" ? "movie" : category} type="similar" id={item.id} key={item.id} />
           </div>
           </div>
         </>

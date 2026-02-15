@@ -24,14 +24,67 @@ const MovieGrid = ({ filterTitle, ...props }) => {
     const getList = async () => {
       let response = null;
 
+      try {
+        if (keyword === undefined) {
+          const params = { page };
+          switch (props.category) {
+            case category.movie:
+              response = await tmdbApi.getMoviesList(movieType.popular, params);
+              break;
+            case category.animation:
+              // Animation genre ID 16
+              response = await tmdbApi.getMoviesByGenre(16, params);
+              break;
+            case category.nollywood:
+              // Nollywood - Nigerian movies
+              response = await tmdbApi.getNollywoodMovies(params);
+              break;
+            default:
+              response = await tmdbApi.getTvList(tvType.popular, params);
+          }
+        } else {
+          const params = {
+            query: keyword,
+            page: 1,
+          };
+          if (props.category === category.animation) {
+            response = await tmdbApi.search("movie", { query: keyword, page: 1, with_genres: 16 });
+          } else if (props.category === category.nollywood) {
+            // Search for Nollywood movies - Nigerian origin
+            response = await tmdbApi.search("movie", { query: keyword, page: 1, with_origin_country: 'NG' });
+          } else {
+            response = await tmdbApi.search(props.category, params);
+          }
+        }
+        if (response) {
+          setItems((response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle));
+          setTotalPage(Math.max(response.total_pages || 1, 1));
+        } else {
+          setItems([]);
+          setTotalPage(1);
+        }
+        setPage(1);
+      } catch (error) {
+        console.error(`Error fetching ${props.category} grid:`, error);
+        setItems([]);
+        setTotalPage(0);
+      }
+    };
+    getList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [keyword, props.category, filterTitle]);
+
+  const loadMore = async () => {
+    let response = null;
+
+    try {
       if (keyword === undefined) {
-        const params = { page };
+        const params = { page: page + 1 };
         switch (props.category) {
           case category.movie:
             response = await tmdbApi.getMoviesList(movieType.popular, params);
             break;
           case category.animation:
-            // Animation genre ID 16
             response = await tmdbApi.getMoviesByGenre(16, params);
             break;
           case category.nollywood:
@@ -44,60 +97,25 @@ const MovieGrid = ({ filterTitle, ...props }) => {
       } else {
         const params = {
           query: keyword,
-          page: 1,
+          page: page + 1,
         };
         if (props.category === category.animation) {
-          response = await tmdbApi.search("movie", { query: keyword, page: 1, with_genres: 16 });
+          response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
         } else if (props.category === category.nollywood) {
-          // Search for Nollywood movies - strictly Nigerian productions
-          response = await tmdbApi.search("movie", { query: keyword, page: 1, with_origin_country: 'NG' });
+          // Search for Nollywood movies - Nigerian origin
+          response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_origin_country: 'NG' });
         } else {
           response = await tmdbApi.search(props.category, params);
         }
       }
-      setItems((response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle));
-      setTotalPage(response.total_pages || 0);
-      setPage(1);
-    };
-    getList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword, props.category, filterTitle]);
-
-  const loadMore = async () => {
-    let response = null;
-
-    if (keyword === undefined) {
-      const params = { page: page + 1 };
-      switch (props.category) {
-        case category.movie:
-          response = await tmdbApi.getMoviesList(movieType.popular, params);
-          break;
-        case category.animation:
-          response = await tmdbApi.getMoviesByGenre(16, params);
-          break;
-        case category.nollywood:
-          // Nollywood - Nigerian movies
-          response = await tmdbApi.getNollywoodMovies(params);
-          break;
-        default:
-          response = await tmdbApi.getTvList(tvType.popular, params);
+      if (response && response.results) {
+        setItems([...items, ...(response.results || []).filter(item => !filterTitle || item.title !== filterTitle)]);
+        setTotalPage(Math.max(response.total_pages || page + 1, page + 1));
+        setPage(page + 1);
       }
-    } else {
-      const params = {
-        query: keyword,
-        page: page + 1,
-      };
-      if (props.category === category.animation) {
-        response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
-      } else if (props.category === category.nollywood) {
-        // Search for Nollywood movies - strictly Nigerian productions
-        response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_origin_country: 'NG' });
-      } else {
-        response = await tmdbApi.search(props.category, params);
-      }
+    } catch (error) {
+      console.error(`Error loading more ${props.category}:`, error);
     }
-    setItems([...items, ...(response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle)]);
-    setPage(page + 1);
   };
 
   return (

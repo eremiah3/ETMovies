@@ -39,7 +39,10 @@ const tmdbApi = {
         const newParams = {
             ...params,
             with_origin_country: 'NG',
-            sort_by: 'popularity.desc'
+            sort_by: 'popularity.desc',
+            include_adult: false,
+            'vote_count.gte': 10,
+            'vote_average.gte': 3.0
         };
         return axiosClient.get(url, { params: newParams });
     },
