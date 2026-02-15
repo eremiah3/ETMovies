@@ -34,6 +34,10 @@ const MovieGrid = ({ filterTitle, ...props }) => {
             // Animation genre ID 16
             response = await tmdbApi.getMoviesByGenre(16, params);
             break;
+          case category.nollywood:
+            // Nollywood - Nigerian movies
+            response = await tmdbApi.getNollywoodMovies(params);
+            break;
           default:
             response = await tmdbApi.getTvList(tvType.popular, params);
         }
@@ -44,6 +48,9 @@ const MovieGrid = ({ filterTitle, ...props }) => {
         };
         if (props.category === category.animation) {
           response = await tmdbApi.search("movie", { query: keyword, page: 1, with_genres: 16 });
+        } else if (props.category === category.nollywood) {
+          // Search for Nollywood movies - strictly Nigerian productions
+          response = await tmdbApi.search("movie", { query: keyword, page: 1, with_origin_country: 'NG' });
         } else {
           response = await tmdbApi.search(props.category, params);
         }
@@ -68,6 +75,10 @@ const MovieGrid = ({ filterTitle, ...props }) => {
         case category.animation:
           response = await tmdbApi.getMoviesByGenre(16, params);
           break;
+        case category.nollywood:
+          // Nollywood - Nigerian movies
+          response = await tmdbApi.getNollywoodMovies(params);
+          break;
         default:
           response = await tmdbApi.getTvList(tvType.popular, params);
       }
@@ -78,6 +89,9 @@ const MovieGrid = ({ filterTitle, ...props }) => {
       };
       if (props.category === category.animation) {
         response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
+      } else if (props.category === category.nollywood) {
+        // Search for Nollywood movies - strictly Nigerian productions
+        response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_origin_country: 'NG' });
       } else {
         response = await tmdbApi.search(props.category, params);
       }

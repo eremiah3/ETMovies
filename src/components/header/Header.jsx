@@ -26,6 +26,10 @@ const headerNav = [
     display: "Animation",
     path: `/${Config.HOME_PAGE}/animation`,
   },
+  {
+    display: "Nollywood",
+    path: `/${Config.HOME_PAGE}/nollywood`,
+  },
 ];
 
 const Header = () => {

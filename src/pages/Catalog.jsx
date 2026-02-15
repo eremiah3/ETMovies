@@ -18,6 +18,8 @@ const Catalog = () => {
         return "TV Shows";
       case cate.animation:
         return "Animation";
+      case cate.nollywood:
+        return "Nollywood";
       // Removed anime case
       default:
         return "Catalog";

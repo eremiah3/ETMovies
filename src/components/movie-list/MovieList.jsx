@@ -25,6 +25,9 @@ const MovieList = ({ filterTitle, ...props }) => {
           case category.animation:
             response = await tmdbApi.getMoviesByGenre(16, params); // Animation genre ID is 16
             break;
+          case category.nollywood:
+            response = await tmdbApi.getNollywoodMovies(params); // Strictly Nigerian movies
+            break;
           // Removed anime case
           default:
             response = await tmdbApi.getTvList(props.type, params);

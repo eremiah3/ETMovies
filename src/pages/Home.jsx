@@ -67,6 +67,16 @@ const Home = () => {
           </div>
           <MovieList category={category.animation} type={movieType.popular} />
         </div>
+
+          <div className="section mb-3">
+          <div className="section__header mb-2">
+            <h2>Trending Nollywood</h2>
+            <Link to={`/${Config.HOME_PAGE}/nollywood`}>
+              <OutlineButton className="small">View more</OutlineButton>
+            </Link>
+          </div>
+          <MovieList category={category.nollywood} type={movieType.popular} />
+        </div>
       </div>
     </>
   );
