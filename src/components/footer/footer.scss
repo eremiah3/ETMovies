@@ -72,5 +72,63 @@
         margin-top: 1rem;
       }
     }
+
+    &__privacy {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2rem;
+      border-radius: 8px;
+      border-left: 4px solid #ff6b35;
+      margin-top: 2rem;
+
+      h3 {
+        font-size: 1.3rem;
+        color: #fff;
+        margin: 0 0 1rem 0;
+        font-weight: 600;
+      }
+
+      p {
+        font-size: 0.95rem;
+        color: #ccc;
+        line-height: 1.6;
+        margin: 0;
+      }
+    }
+  }
+
+  &__ads {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    max-width: 320px;
+
+    @include mobile {
+      position: static;
+      margin-top: 2rem;
+      margin-left: auto;
+      margin-right: auto;
+      transform: none;
+    }
+
+    .ad-container {
+      min-height: 250px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      ins {
+        display: block;
+      }
+
+      ins.adsbygoogle {
+        display: block;
+      }
+    }
   }
 }
+

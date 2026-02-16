@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 import tmdbApi from "../../api/tmdbApi";
 import vidsrcApi from "../../api/vidsrcApi";
 import adBlocker from "../../utils/adBlocker";
+import { addContinueWatching, addContinueWatchingToLocal } from "../../utils/continueWatching";
 
 const DEFAULT_RUNTIME_MIN = 20; // fallback runtime in minutes
 
@@ -18,6 +19,7 @@ const VideoList = (props) => {
   const [currentSourceIndex, setCurrentSourceIndex] = useState(0);
   const [runtime, setRuntime] = useState(null); // seconds
   const [posterUrl, setPosterUrl] = useState(null);
+  const [hasTracked, setHasTracked] = useState(false); // Track if we've already logged this viewing
 
   // Fetch video sources and runtime info
   const getVideos = useCallback(async () => {
@@ -87,11 +89,33 @@ const VideoList = (props) => {
 
   useEffect(() => {
     setIsPlaying(true);
+    setHasTracked(false); // Reset tracking for new video
     getVideos();
     return () => {
       setRuntime(null);
     };
   }, [props.category, category, props.id, selectedSeason, selectedEpisode, getVideos]);
+
+  // Track movie/show as watched as soon as it starts playing
+  useEffect(() => {
+    if (isPlaying && !hasTracked && props.item && videos.length > 0) {
+      const item = {
+        id: props.id,
+        title: props.item.title || props.item.name,
+        poster_path: props.item.poster_path,
+        backdrop_path: props.item.backdrop_path,
+        overview: props.item.overview,
+      };
+      
+      // Save to localStorage instantly for immediate display
+      addContinueWatchingToLocal(item, props.category);
+      
+      // Also save to Firestore for cross-device sync
+      addContinueWatching(item, props.category);
+      
+      setHasTracked(true);
+    }
+  }, [isPlaying, hasTracked, props.item, videos.length, props.id, props.category]);
 
   const getSeasons = useCallback(async () => {
     if (props.category === "tv" || category === "tv") {

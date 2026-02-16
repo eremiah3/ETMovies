@@ -5,6 +5,7 @@ import { OutlineButton } from "../components/button/Button";
 import HeroSlide from "../components/hero-slide/HeroSlide";
 import MovieList from "../components/movie-list/MovieList";
 import AnimatedBackground from "../components/AnimatedBackground";
+import ContinueWatching from "../components/continue-watching/ContinueWatching";
 
 import { category, movieType, tvType } from "../api/tmdbApi";
 
@@ -17,6 +18,10 @@ const Home = () => {
       <AnimatedBackground variant="hero" />
 
       <div className="container">
+
+        <div className="section mb-3">
+          <ContinueWatching />
+        </div>
 
         <div className="section mb-3">
           <div className="section__header mb-2">

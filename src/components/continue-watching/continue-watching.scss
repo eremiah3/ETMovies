@@ -65,6 +65,17 @@
     }
   }
 
+  &__loading {
+    padding: 2rem 3rem;
+    text-align: center;
+
+    p {
+      font-size: 1.1rem;
+      color: #ccc;
+      margin: 0;
+    }
+  }
+
   .movie-card-container {
     position: relative;
 
