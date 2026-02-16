@@ -53,8 +53,13 @@ class AdBlocker {
       'twitter.com',
       'instagram.com',
       'pinterest.com',
-      'linkedin.com',
+      'linkedin.com'
+    ];
+
+    // Hosts that are media providers we should not treat as ad domains
+    this.allowedMediaHosts = [
       'youtube.com',
+      'youtu.be',
       'vimeo.com',
       'dailymotion.com'
     ];
@@ -171,7 +176,10 @@ class AdBlocker {
   isAdDomain(url) {
     try {
       const urlObj = new URL(url);
-      return this.adDomains.some(domain => urlObj.hostname.includes(domain));
+      const hostname = urlObj.hostname || '';
+      // If it's a known media host, don't treat as ad domain
+      if (this.allowedMediaHosts.some(h => hostname.includes(h))) return false;
+      return this.adDomains.some(domain => hostname.includes(domain));
     } catch {
       return false;
     }

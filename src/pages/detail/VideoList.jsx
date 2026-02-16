@@ -25,7 +25,35 @@ const VideoList = (props) => {
   const getVideos = useCallback(async () => {
     try {
       if (props.category === "movie" || category === "movie") {
-        const sources = await vidsrcApi.getMovieStream(props.id);
+        let sources = await vidsrcApi.getMovieStream(props.id);
+
+        // If VidSrc returned candidates, ask the preflight server which (if any) is reachable.
+        if (sources && sources.length) {
+          try {
+            const resp = await fetch('http://localhost:4000/preflight', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ urls: sources.map(s => s.url) }),
+            });
+            if (resp.ok) {
+              const j = await resp.json();
+              if (!j || !j.okUrl) {
+                // No VidSrc candidate reachable -> try YouTube fallback
+                const title = (props.item?.title || props.item?.name || '').trim();
+                const q = `${title} full movie${props.category === 'nollywood' ? ' Nollywood' : ''}`.trim();
+                const yt = await vidsrcApi.getYouTubeFallback(q);
+                if (yt && yt.length) sources = yt;
+              } else {
+                // Move the okUrl to the front of sources for reliability
+                sources = sources.sort((a,b)=> (a.url===j.okUrl? -1: b.url===j.okUrl? 1:0));
+              }
+            }
+          } catch (err) {
+            // ignore preflight errors and continue with original sources
+            console.warn('Preflight check failed:', err);
+          }
+        }
+
         if (!sources || sources.length === 0) throw new Error("No movie sources");
         setVideos([
           {
@@ -56,6 +84,14 @@ const VideoList = (props) => {
         if (sources.length === 0) {
           sources = await vidsrcApi.getTvStream(props.id, season, episode);
         }
+        // If still no sources, try YouTube fallback (search for show + SxExx or "full episode")
+        if (!sources || sources.length === 0) {
+          const showTitle = (props.item?.name || props.item?.title || '').trim();
+          const epLabel = `S${String(season).padStart(2,'0')}E${String(episode).padStart(2,'0')}`;
+          const q = `${showTitle} ${epLabel} full episode${props.category === 'nollywood' ? ' Nollywood' : ''}`.trim();
+          const yt = await vidsrcApi.getYouTubeFallback(q);
+          if (yt && yt.length) sources = yt;
+        }
         if (!sources || sources.length === 0) throw new Error("No TV sources");
         setVideos([
           {
@@ -85,7 +121,7 @@ const VideoList = (props) => {
     } catch (error) {
       console.error("Error fetching videos or runtime:", error);
     }
-  }, [props.id, props.category, props.season, props.episode, category, selectedSeason, selectedEpisode]);
+  }, [props.id, props.category, props.season, props.episode, category, selectedSeason, selectedEpisode, props.item]);
 
   useEffect(() => {
     setIsPlaying(true);
@@ -403,6 +439,8 @@ const VideoPlayer = ({ url, sources = [], onNext, onPrev, runtime, posterUrl }) 
       }}
     >
       <ErrorBanner />
+
+      {/* YouTube fallback plays embedded in-site (no external badge) */}
       <div
         ref={iframeContainerRef}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}

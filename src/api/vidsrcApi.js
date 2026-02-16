@@ -36,6 +36,47 @@ const vidsrcApi = {
     // you could test each source for availability
     return sources[0];
   }
+,
+
+  // Server-assisted YouTube fallback (no API key required).
+  // Accepts a title/query string and returns an array of sources compatible with the rest of the app.
+  getYouTubeFallback: async (query) => {
+    if (!query) return [];
+    try {
+      // First ask local server to search YouTube and return a videoId
+      const resp = await fetch('http://localhost:4000/youtube-search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      if (!resp.ok) return [];
+      const j = await resp.json();
+      const videoId = j && j.videoId;
+      if (!videoId) return [];
+
+      // Try YouTube oEmbed endpoint for nicer metadata and to verify availability
+      try {
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}&format=json`;
+        const oe = await fetch(oembedUrl, { method: 'GET' });
+        if (oe.ok) {
+          const meta = await oe.json();
+          return [{
+            url: `https://www.youtube.com/embed/${videoId}`,
+            source: 'youtube',
+            title: meta.title,
+            provider: meta.provider_name,
+            thumbnail: meta.thumbnail_url,
+          }];
+        }
+      } catch (err) {
+        // ignore oEmbed failures and fall back to embed URL
+      }
+
+      return [{ url: `https://www.youtube.com/embed/${videoId}`, source: 'youtube' }];
+    } catch (err) {
+      return [];
+    }
+  }
 };
 
 export default vidsrcApi;
