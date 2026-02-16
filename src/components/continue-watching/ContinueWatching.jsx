@@ -46,9 +46,7 @@ const ContinueWatching = () => {
     await overwriteContinueWatching(updatedItems);
   };
 
-  if (!currentUser) {
-    return null;
-  }
+  // show for both guests and authenticated users
 
   return (
     <div className="continue-watching">
