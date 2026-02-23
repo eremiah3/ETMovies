@@ -15,7 +15,7 @@ import * as Config from "./../../constants/Config";
 const MovieGrid = ({ filterTitle, ...props }) => {
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(1);
-  const [totalPage, setTotalPage] = useState(0);
+  const [, setTotalPage] = useState(0);
   const [genres, setGenres] = useState([]);
   const [selectedGenre, setSelectedGenre] = useState(null);
   const [sortOrder, setSortOrder] = useState('popularity.desc'); // New state for sorting
