@@ -17,8 +17,20 @@ const MovieGrid = ({ filterTitle, ...props }) => {
 
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
+  
+  // Track load more mode for Nollywood to fetch old and new movies
+  const [loadMode, setLoadMode] = useState(0);
 
   const { keyword } = useParams();
+
+  // Nollywood sort modes to cycle through for variety
+  const nollywoodSortModes = [
+    { sort_by: 'popularity.desc', name: 'Popular' },
+    { sort_by: 'vote_count.desc', name: 'Most Voted' },
+    { sort_by: 'primary_release_date.desc', name: 'Newest First' },
+    { sort_by: 'primary_release_date.asc', name: 'Oldest First' },
+    { sort_by: 'vote_average.desc', name: 'Top Rated' },
+  ];
 
   useEffect(() => {
     const getList = async () => {
@@ -36,8 +48,8 @@ const MovieGrid = ({ filterTitle, ...props }) => {
               response = await tmdbApi.getMoviesByGenre(16, params);
               break;
             case category.nollywood:
-              // Nollywood - Nigerian movies
-              response = await tmdbApi.getNollywoodMovies(params);
+              // Nollywood - Nigerian movies - use first sort mode
+              response = await tmdbApi.getNollywoodMovies({ ...params, ...nollywoodSortModes[0] });
               break;
             default:
               response = await tmdbApi.getTvList(tvType.popular, params);
@@ -64,6 +76,7 @@ const MovieGrid = ({ filterTitle, ...props }) => {
           setTotalPage(1);
         }
         setPage(1);
+        setLoadMode(0); // Reset load mode when category changes
       } catch (error) {
         console.error(`Error fetching ${props.category} grid:`, error);
         setItems([]);
@@ -88,8 +101,15 @@ const MovieGrid = ({ filterTitle, ...props }) => {
             response = await tmdbApi.getMoviesByGenre(16, params);
             break;
           case category.nollywood:
-            // Nollywood - Nigerian movies
-            response = await tmdbApi.getNollywoodMovies(params);
+            // Cycle through different sort modes to get both old and new movies
+            const nextMode = (loadMode + 1) % nollywoodSortModes.length;
+            const currentSort = nollywoodSortModes[nextMode];
+            response = await tmdbApi.getNollywoodMovies({ 
+              ...params, 
+              ...currentSort,
+              min_votes: 1 
+            });
+            setLoadMode(nextMode);
             break;
           default:
             response = await tmdbApi.getTvList(tvType.popular, params);
@@ -102,8 +122,16 @@ const MovieGrid = ({ filterTitle, ...props }) => {
         if (props.category === category.animation) {
           response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
         } else if (props.category === category.nollywood) {
-          // Search for Nollywood movies - Nigerian origin
-          response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_origin_country: 'NG' });
+          // Cycle through different sort modes for search as well
+          const nextMode = (loadMode + 1) % nollywoodSortModes.length;
+          const currentSort = nollywoodSortModes[nextMode];
+          response = await tmdbApi.search("movie", { 
+            query: keyword, 
+            page: page + 1, 
+            with_origin_country: 'NG',
+            sort_by: currentSort.sort_by
+          });
+          setLoadMode(nextMode);
         } else {
           response = await tmdbApi.search(props.category, params);
         }
