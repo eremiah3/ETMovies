@@ -53,13 +53,8 @@ class AdBlocker {
       'twitter.com',
       'instagram.com',
       'pinterest.com',
-      'linkedin.com'
-    ];
-
-    // Hosts that are media providers we should not treat as ad domains
-    this.allowedMediaHosts = [
+      'linkedin.com',
       'youtube.com',
-      'youtu.be',
       'vimeo.com',
       'dailymotion.com'
     ];
@@ -140,8 +135,6 @@ class AdBlocker {
   iframe.allowFullscreen = true; // Enable fullscreen for better compatibility
   iframe.setAttribute('allowfullscreen', 'true');
   iframe.frameBorder = '0';
-  // Remove sandbox restrictions to allow video playback
-  iframe.sandbox = '';
 
     // Add ad blocking when iframe loads
     iframe.onload = () => {
@@ -178,10 +171,7 @@ class AdBlocker {
   isAdDomain(url) {
     try {
       const urlObj = new URL(url);
-      const hostname = urlObj.hostname || '';
-      // If it's a known media host, don't treat as ad domain
-      if (this.allowedMediaHosts.some(h => hostname.includes(h))) return false;
-      return this.adDomains.some(domain => hostname.includes(domain));
+      return this.adDomains.some(domain => urlObj.hostname.includes(domain));
     } catch {
       return false;
     }

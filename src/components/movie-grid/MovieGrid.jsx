@@ -14,69 +14,64 @@ import * as Config from "./../../constants/Config";
 
 const MovieGrid = ({ filterTitle, ...props }) => {
   const [items, setItems] = useState([]);
-
   const [page, setPage] = useState(1);
   const [totalPage, setTotalPage] = useState(0);
-  
-  // Track load more mode for Nollywood to fetch old and new movies
-  const [loadMode, setLoadMode] = useState(0);
-
+  const [genres, setGenres] = useState([]);
+  const [selectedGenre, setSelectedGenre] = useState(null);
+  const [sortOrder, setSortOrder] = useState('popularity.desc'); // New state for sorting
   const { keyword } = useParams();
 
-  // Nollywood sort modes to cycle through for variety
-  const nollywoodSortModes = [
-    { sort_by: 'popularity.desc', name: 'Popular' },
-    { sort_by: 'vote_count.desc', name: 'Most Voted' },
-    { sort_by: 'primary_release_date.desc', name: 'Newest First' },
-    { sort_by: 'primary_release_date.asc', name: 'Oldest First' },
-    { sort_by: 'vote_average.desc', name: 'Top Rated' },
-  ];
+  useEffect(() => {
+    const getGenres = async () => {
+      if (props.category === category.nollywood) {
+        try {
+          const response = await tmdbApi.getGenres(category.movie);
+          setGenres(response.genres || []);
+        } catch (error) {
+          console.error("Error fetching genres:", error);
+        }
+      }
+    };
+    getGenres();
+  }, [props.category]);
 
   useEffect(() => {
     const getList = async () => {
       let response = null;
-
       try {
+        const params = { page, with_genres: selectedGenre };
         if (keyword === undefined) {
-          const params = { page };
           switch (props.category) {
             case category.movie:
               response = await tmdbApi.getMoviesList(movieType.popular, params);
               break;
             case category.animation:
-              // Animation genre ID 16
               response = await tmdbApi.getMoviesByGenre(16, params);
               break;
             case category.nollywood:
-              // Nollywood - Nigerian movies - use first sort mode
-              response = await tmdbApi.getNollywoodMovies({ ...params, ...nollywoodSortModes[0] });
+              response = await tmdbApi.getNollywoodMovies(params, sortOrder); // Pass sortOrder
               break;
             default:
               response = await tmdbApi.getTvList(tvType.popular, params);
           }
         } else {
-          const params = {
-            query: keyword,
-            page: 1,
-          };
+          const searchParams = { query: keyword, page: 1, with_genres: selectedGenre };
           if (props.category === category.animation) {
-            response = await tmdbApi.search("movie", { query: keyword, page: 1, with_genres: 16 });
+            response = await tmdbApi.search("movie", { ...searchParams, with_genres: 16 });
           } else if (props.category === category.nollywood) {
-            // Search for Nollywood movies - Nigerian origin
-            response = await tmdbApi.search("movie", { query: keyword, page: 1, with_origin_country: 'NG' });
+            response = await tmdbApi.search("movie", { ...searchParams, with_origin_country: 'NG', sort_by: sortOrder }); // Pass sortOrder
           } else {
-            response = await tmdbApi.search(props.category, params);
+            response = await tmdbApi.search(props.category, searchParams);
           }
         }
         if (response) {
-          setItems((response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle));
-          setTotalPage(Math.max(response.total_pages || 1, 1));
+          const filteredItems = (response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle);
+          setItems(page === 1 ? filteredItems : [...items, ...filteredItems]);
+          setTotalPage(response.total_pages || 1);
         } else {
           setItems([]);
           setTotalPage(1);
         }
-        setPage(1);
-        setLoadMode(0); // Reset load mode when category changes
       } catch (error) {
         console.error(`Error fetching ${props.category} grid:`, error);
         setItems([]);
@@ -85,84 +80,53 @@ const MovieGrid = ({ filterTitle, ...props }) => {
     };
     getList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [keyword, props.category, filterTitle]);
+  }, [keyword, props.category, filterTitle, page, selectedGenre, sortOrder]); // Add sortOrder to dependencies
 
-  const loadMore = async () => {
-    let response = null;
-
-    try {
-      if (keyword === undefined) {
-        const params = { page: page + 1 };
-        switch (props.category) {
-          case category.movie:
-            response = await tmdbApi.getMoviesList(movieType.popular, params);
-            break;
-          case category.animation:
-            response = await tmdbApi.getMoviesByGenre(16, params);
-            break;
-          case category.nollywood:
-            // Cycle through different sort modes to get both old and new movies
-            const nextMode = (loadMode + 1) % nollywoodSortModes.length;
-            const currentSort = nollywoodSortModes[nextMode];
-            response = await tmdbApi.getNollywoodMovies({ 
-              ...params, 
-              ...currentSort,
-              min_votes: 1 
-            });
-            setLoadMode(nextMode);
-            break;
-          default:
-            response = await tmdbApi.getTvList(tvType.popular, params);
-        }
-      } else {
-        const params = {
-          query: keyword,
-          page: page + 1,
-        };
-        if (props.category === category.animation) {
-          response = await tmdbApi.search("movie", { query: keyword, page: page + 1, with_genres: 16 });
-        } else if (props.category === category.nollywood) {
-          // Cycle through different sort modes for search as well
-          const nextMode = (loadMode + 1) % nollywoodSortModes.length;
-          const currentSort = nollywoodSortModes[nextMode];
-          response = await tmdbApi.search("movie", { 
-            query: keyword, 
-            page: page + 1, 
-            with_origin_country: 'NG',
-            sort_by: currentSort.sort_by
-          });
-          setLoadMode(nextMode);
-        } else {
-          response = await tmdbApi.search(props.category, params);
-        }
-      }
-      if (response && response.results) {
-        setItems([...items, ...(response.results || []).filter(item => !filterTitle || item.title !== filterTitle)]);
-        setTotalPage(Math.max(response.total_pages || page + 1, page + 1));
-        setPage(page + 1);
-      }
-    } catch (error) {
-      console.error(`Error loading more ${props.category}:`, error);
+  const loadMore = () => {
+    setPage(prevPage => prevPage + 1);
+    // Toggle sort order for Nollywood category
+    if (props.category === category.nollywood) {
+      setSortOrder(prevSortOrder =>
+        prevSortOrder === 'popularity.desc' ? 'release_date.asc' : 'popularity.desc'
+      );
     }
+  };
+
+  const handleGenreChange = (e) => {
+    const genreId = e.target.value ? Number(e.target.value) : null;
+    setSelectedGenre(genreId);
+    setPage(1); // Reset to first page when genre changes
+    setItems([]); // Clear existing items
+    setSortOrder('popularity.desc'); // Reset sort order when genre changes
   };
 
   return (
     <>
       <div className="section mb-3">
-        <MovieSearch category={props.category} keyword={keyword} />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+          <MovieSearch category={props.category} keyword={keyword} />
+          {props.category === category.nollywood && genres.length > 0 && (
+            <div className="genre-filter">
+              <select onChange={handleGenreChange} value={selectedGenre || ''}>
+                <option value="">All Genres</option>
+                {genres.map(genre => (
+                  <option key={genre.id} value={genre.id}>{genre.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+        </div>
       </div>
       <div className="movie-grid">
         {items.map((item, index) => (
           <MovieCard key={index} category={props.category} item={item} />
         ))}
       </div>
-      {page < totalPage ? (
-        <div className="movie-grid__loadmore">
-          <OutlineButton className="small" onClick={loadMore}>
-            Load more
-          </OutlineButton>
-        </div>
-      ) : null}
+      <div className="movie-grid__loadmore">
+        <OutlineButton className="small" onClick={loadMore}>
+          Load more
+        </OutlineButton>
+      </div>
     </>
   );
 };
