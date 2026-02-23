@@ -140,6 +140,8 @@ class AdBlocker {
   iframe.allowFullscreen = true; // Enable fullscreen for better compatibility
   iframe.setAttribute('allowfullscreen', 'true');
   iframe.frameBorder = '0';
+  // Remove sandbox restrictions to allow video playback
+  iframe.sandbox = '';
 
     // Add ad blocking when iframe loads
     iframe.onload = () => {
