@@ -1,14 +1,33 @@
 const vidsrcApi = {
   // Get streaming URL for movies with multiple fallbacks
-  getMovieStream: (movieId) => {
-    // Primary sources with fallbacks using official VidSrc domains
-    const sources = [
+  // Accepts optional imdbId for additional streaming services that use IMDB
+  getMovieStream: (movieId, imdbId) => {
+    // Primary sources with fallbacks using official VidSrc domains (TMDB ID)
+    let sources = [
       { url: `https://vidsrcme.ru/embed/movie/${movieId}`, source: "vidsrcme.ru" },
       { url: `https://vidsrcme.su/embed/movie/${movieId}`, source: "vidsrcme.su" },
       { url: `https://vidsrc-me.su/embed/movie/${movieId}`, source: "vidsrc-me.su" },
       { url: `https://vidsrc-embed.ru/embed/movie/${movieId}`, source: "vidsrc-embed.ru" },
-      { url: `https://www.cloudstream.pro/embed/movie/${movieId}`, source: "cloudstream pro" }
+      { url: `https://www.cloudstream.pro/embed/movie/${movieId}`, source: "cloudstream pro" },
+      { url: `https://vidguard.xyz/embed/movie/${movieId}`, source: "vidguard.xyz" },
+      { url: `https://streamwish.to/embed/movie/${movieId}`, source: "streamwish.to" },
+      { url: `https://filemoon.sx/embed/movie/${movieId}`, source: "filemoon.sx" }
     ];
+
+    // Add additional streaming services that use IMDB ID if available
+    if (imdbId) {
+      const imdbSources = [
+        { url: `https://2embed.cc/embed/movie?imdb=${imdbId}`, source: "2embed.cc" },
+        { url: `https://2embed.stream/embed/movie?imdb=${imdbId}`, source: "2embed.stream" },
+        { url: `https://2embed.org/embed/movie?imdb=${imdbId}`, source: "2embed.org" },
+        { url: `https://superembed.stream/embed/movie?imdb=${imdbId}`, source: "superembed.stream" },
+        { url: `https://embedmaster.com/embed/movie?imdb=${imdbId}`, source: "embedmaster.com" },
+        { url: `https://vidguard.xyz/embed/movie?imdb=${imdbId}`, source: "vidguard.xyz (IMDB)" },
+        { url: `https://streamwish.to/embed/movie?imdb=${imdbId}`, source: "streamwish.to (IMDB)" },
+        { url: `https://filemoon.sx/embed/movie?imdb=${imdbId}`, source: "filemoon.sx (IMDB)" }
+      ];
+      sources = [...sources, ...imdbSources];
+    }
 
     return sources;
   },
