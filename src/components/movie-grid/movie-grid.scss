@@ -15,6 +15,24 @@
   }
 }
 
+.genre-filter {
+  select {
+    background-color: $black;
+    color: $white;
+    border: 1px solid $white;
+    border-radius: $border-radius;
+    padding: 0.5rem 1rem;
+    font-family: $font-family;
+    font-size: 1rem;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: $main-color;
+    }
+  }
+}
+
 .movie-search {
   position: relative;
   width: 100%;

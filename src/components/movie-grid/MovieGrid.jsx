@@ -66,8 +66,8 @@ const MovieGrid = ({ filterTitle, ...props }) => {
         }
         if (response) {
           const filteredItems = (response.results || response.data?.data || []).filter(item => !filterTitle || item.title !== filterTitle);
-          setItems(page === 1 ? filteredItems : [...items, ...filteredItems]);
-          setTotalPage(response.total_pages || 1);
+          setItems(page === 6 ? filteredItems : [...items, ...filteredItems]);
+          setTotalPage(response.total_pages || 6);
         } else {
           setItems([]);
           setTotalPage(1);
