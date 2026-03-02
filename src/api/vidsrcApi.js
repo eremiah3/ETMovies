@@ -7,7 +7,9 @@ const vidsrcApi = {
       { url: `https://vidsrcme.su/embed/movie/${movieId}`, source: "vidsrcme.su" },
       { url: `https://vidsrc-me.su/embed/movie/${movieId}`, source: "vidsrc-me.su" },
       { url: `https://vidsrc-embed.ru/embed/movie/${movieId}`, source: "vidsrc-embed.ru" },
-      { url: `https://www.cloudstream.pro/embed/movie/${movieId}`, source: "cloudstream pro" }
+      { url: `https://www.cloudstream.pro/embed/movie/${movieId}`, source: "cloudstream pro" },
+      { url: `https://www.2embed.to/embed/tmdb/movie?id=${movieId}`, source: "2embed" },
+      { url: `https://vidsrc.win/embed/movie/${movieId}`, source: "vidsrc.win" }
     ];
 
     return sources;
@@ -17,10 +19,12 @@ const vidsrcApi = {
   getTvStream: (tvId, season = 1, episode = 1) => {
     const sources = [
       { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
-      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
-      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
-      { url: `https://vidsrcme.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.ru" },
-      { url: `https://www.cloudstream.pro/embed/tv/${tvId}/${season}/${episode}`, source: "cloudstream pro" }
+      { url: `https://vidsrcme.su/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrcme.su" },
+      { url: `https://vidsrc-me.su/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc-me.su" },
+      { url: `https://vidsrc-embed.ru/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc-embed.ru" },
+      { url: `https://www.cloudstream.pro/embed/tv/${tvId}/${season}/${episode}`, source: "cloudstream pro" },
+      { url: `https://www.2embed.to/embed/tmdb/tv?id=${tvId}&s=${season}&e=${episode}`, source: "2embed" },
+      { url: `https://vidsrc.win/embed/tv/${tvId}/${season}/${episode}`, source: "vidsrc.win" }
     ];
 
     return sources;
